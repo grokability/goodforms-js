@@ -1,5 +1,5 @@
 import auto from "./auto"
-import "core-js/modules/es.object.assign.js" // I am supposed to be able to say `import "core-js"` and it should just work
+// import "core-js/modules/es.object.assign.js" // I am supposed to be able to say `import "core-js"` and it should just work
 // but, of course, it does not.
 // (either I get a giant shitshow of ridiculous amounts of pointless code, or no Object.assign() method)
 // This is all super weird and unbelievably annoying.
