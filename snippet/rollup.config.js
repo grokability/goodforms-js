@@ -1,11 +1,7 @@
-// import buble from 'rollup-plugin-buble';
 import babel from 'rollup-plugin-babel'
-// import "@babel/polyfill";
 
 const resolve = require('rollup-plugin-node-resolve')
 const commonjs = require('rollup-plugin-commonjs')
-
-// const polyfill = require('rollup-plugin-polyfill')
 
 
 module.exports = {
@@ -40,18 +36,4 @@ module.exports = {
       ]
     })
   ]
-  // plugins: [ resolve(), commonjs(), buble(), polyfill(['es6-object-assign/auto','shcnerble/groobits'], {method: 'import'}) ]  
-//   plugins: [ babel( {           "presets": [
-//     ["env",
-//         {
-//           "modules": false,
-//           "spec": true,
-//           "forceAllTransforms": true,
-//           "useBuiltIns": "usage",
-//           "corejs": 3
-//           }
-//     ]
-// ]}
-// ) ]
-
 }
