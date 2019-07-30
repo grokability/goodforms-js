@@ -8,6 +8,7 @@ export default function (form_key,options) {
         log.error("Form key was not set")
         return
     }
+    let my_options
     if(options) {
         my_options=duplicate(options);
         my_options.form_key = form_key
@@ -15,13 +16,13 @@ export default function (form_key,options) {
         my_options={form_key: form_key}
     }
     if(my_options.debug) {
-        log.debug = my_options.debug
+        log.debug_enabled = my_options.debug //FIXME this is already handled in index.js, this is superfluous
         delete my_options.debug //don't want to keep passing this down to each Verify
     }
     let activated_forms=[]
-    for(form in document.forms) { //olde-skoole DOM0 FTW!
+    for(let form in document.forms) { //olde-skoole DOM0 FTW!
         log.debug("Checking form: "+form+" for verifiable email address fields...")
-        for(element in document.forms[form].elements) {
+        for(let element in document.forms[form].elements) { // FIXME I think this iterates names *AND* numbers
             log.debug("Checking field #"+element+" to see if it's an email address field")
             let this_field = document.forms[form].elements[element]
             if(this_field.type == "email" || this_field.name == "email" || this_field.id == "email") {

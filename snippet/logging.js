@@ -1,6 +1,6 @@
 class Log {
     constructor(debug_enabled = false) {
-        this.debug = debug_enabled
+        this.debug_enabled = debug_enabled
     }
 
     error(msg) {
@@ -10,7 +10,7 @@ class Log {
     }
 
     debug(msg) {
-        if(this.debug) {
+        if(this.debug_enabled) {
             this.log_at_level('debug',msg)
         }
     }
@@ -24,9 +24,9 @@ class Log {
     }
 }
 
-log = new Log()
+var log = new Log()
 
 
-export default Log
+export default log
 
 //debug,info,warn,error

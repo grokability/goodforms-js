@@ -9,7 +9,9 @@ module.exports = {
   output: {
     file: 'bundle.js',
     format: 'umd', // I believe this is the right call; use 'iffe' maybe instead?
-    name: 'MyBundle'
+    name: 'Goodverification',
+    sourcemap: 'inline',
+    intro: process.env.SNIPPET_ENV == "production" ? "const HOST = 'https://api.goodverification.com'" : "const HOST = 'http://localhost:8000'"
   },
   watch: {
     include: '*.js'
