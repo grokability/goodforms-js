@@ -6,14 +6,14 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "watch": "rollup -c --watch",
+    "compress": "uglifyjs bundle.js > bundle.min.js",
     "production": "exit 1",
     "publish": "exit 1"
   },
   "author": "",
   "license": "SEE LICENSE IN LICENSE.TXT",
   "dependencies": {
-    "browser-jsonp": "^1.1.5",
-    "core-js-pure": "^3.1.4"
+    "browser-jsonp": "^1.1.5"
   },
   "devDependencies": {
     "regenerator-runtime": "^0.13.3",
