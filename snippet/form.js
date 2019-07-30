@@ -1,6 +1,6 @@
 
 import log from "./logging"
-import jsonp from "jsonp"
+import JSONP from "browser-jsonp"
 
 export default class Form {
     constructor(options) {
@@ -62,17 +62,20 @@ export default class Form {
 
     onchange_handler(event) {
         DO_SOMETHNG_CLEVER()
-        jsonp("url")
+        JSONP("url")
     }
 
     onsubmit_handler(event) {
         DO_SOMETHING_CLEVERER()
-        jsonp("url")
+        JSONP("url")
     }
 
     verify(email, callback) {
-        jsonp("https://goodverification.com/verify?email="+ email + "&form_key="+this.form_key,{}, function (data) {
-            callback(data.status)
+        JSONP({url: "https://goodverification.com/verify",
+            data: {email: email, form_key: this.form_key}, 
+            success: function (data) {
+                callback(data.status)
+            }
         })
     }
 }
