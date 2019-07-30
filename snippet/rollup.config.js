@@ -1,9 +1,7 @@
-import buble from 'rollup-plugin-buble';
+import buble from 'rollup-plugin-buble'
 
 const resolve = require('rollup-plugin-node-resolve')
 const commonjs = require('rollup-plugin-commonjs')
-
-// const polyfill = require('rollup-plugin-polyfill')
 
 
 module.exports = {
@@ -22,6 +20,4 @@ module.exports = {
     resolve(),
     buble()
   ]
-  // plugins: [ resolve(), commonjs(), buble(), polyfill(['es6-object-assign/auto','shcnerble/groobits'], {method: 'import'}) ]  
-
 }

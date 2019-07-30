@@ -1,6 +1,7 @@
 import log from "./logging"
 import Form from "./form"
-import assign from "core-js-pure"
+//import assign from "core-js-pure/es/object/assign"
+import { duplicate } from "./utils.js"
 
 export default function (form_key,options) {
     if(!form_key) {
@@ -8,7 +9,7 @@ export default function (form_key,options) {
         return
     }
     if(options) {
-        my_options=assign({}, options);
+        my_options=duplicate(options);
         my_options.form_key = form_key
     } else {
         my_options={form_key: form_key}
@@ -24,11 +25,11 @@ export default function (form_key,options) {
             log.debug("Checking field #"+element+" to see if it's an email address field")
             let this_field = document.forms[form].elements[element]
             if(this_field.type == "email" || this_field.name == "email" || this_field.id == "email") {
-                let options_copy = assign({},options)
+                let options_copy = duplicate(my_options)
                 log.debug("Found candidate field. Name: "+this_field.name+" Type: "+this_field.type+" ID: "+this_field.id)
                 options_copy.form = document.forms[form]
                 options_copy.email_field = this_field
-                activated_forms.push(new Form(my_options))
+                activated_forms.push(new Form(options_copy))
             }
         }
     }
