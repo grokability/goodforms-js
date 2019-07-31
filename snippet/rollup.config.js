@@ -1,4 +1,6 @@
 import buble from 'rollup-plugin-buble'
+import postcss from 'rollup-plugin-postcss'
+
 
 const resolve = require('rollup-plugin-node-resolve')
 const commonjs = require('rollup-plugin-commonjs')
@@ -11,7 +13,7 @@ module.exports = {
     format: 'umd', // I believe this is the right call; use 'iffe' maybe instead?
     name: 'Goodverification',
     sourcemap: 'inline',
-    intro: process.env.SNIPPET_ENV == "production" ? "const HOST = 'https://api.goodverification.com'" : "const HOST = 'http://localhost:8000'"
+    intro: process.env.SNIPPET_ENV == "production" ? "var HOST = 'https://api.goodverification.com'" : "var HOST = 'http://localhost:8000'"
   },
   watch: {
     include: '*.js'
@@ -20,6 +22,7 @@ module.exports = {
   plugins: [      
     commonjs(),
     resolve(),
+    postcss(),
     buble()
   ]
 }

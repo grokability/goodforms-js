@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "watch": "rollup -c --watch --environment SNIPPET_ENV:dev",
-    "compress": "uglifyjs bundle.js > bundle.min.js",
+    "compress": "uglifyjs --source-map -o bundle.min.js bundle.js",
     "production": "exit 1",
     "publish": "exit 1"
   },
@@ -14,6 +14,7 @@
   "license": "SEE LICENSE IN LICENSE.TXT",
   "dependencies": {
     "browser-jsonp": "^1.1.5",
+    "tingle.js": "^0.15.1",
     "tooltip.js": "^1.3.2"
   },
   "devDependencies": {
@@ -23,6 +24,7 @@
     "rollup-plugin-commonjs": "^10.0.1",
     "rollup-plugin-node-resolve": "^5.2.0",
     "rollup-plugin-polyfill": "^3.0.0",
+    "rollup-plugin-postcss": "^2.0.3",
     "uglify-js": "^3.6.0"
   }
 }
