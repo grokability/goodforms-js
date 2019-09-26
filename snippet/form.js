@@ -5,8 +5,12 @@ import JSONP from "browser-jsonp"
 
 import tingle from "tingle.js"
 
+import Tooltip from "tooltip.js"
+
 import 'tingle.js/dist/tingle.min.css' //FIXME - we should perhaps set the rollup config to NOT inject by default, and then we do it ourselves later when needed?
                                         //if other people are also using the Tingle library, then this would prevent us all from conflicting with each other
+
+import './popper.css' //FIXME - this also should only be loaded if needed (allow customers to override CSS I guess?)
 
 export default class Form {
     constructor(options) {
@@ -102,11 +106,14 @@ export default class Form {
 
     onchange_handler(event) {
         this.verify(this.email_field.value, (results) => {
-            log.debug("Verification results are: "+results)
+            log.debug("Verification results are: ")
+            log.debugdir(results)
             switch(results.status) {
                 case "BAD":
                 //FIRE HOOKS FIRST? FIXME
-                this.mytooltip = new Tooltip(this.email_field)
+                if(!this.mytooltip) {
+                    this.mytooltip = new Tooltip(this.email_field, {placement: 'bottom', title: 'Bad Email Address', trigger: 'manual'})
+                }
                 this.mytooltip.show()
                 this.disable_submits()
                 break

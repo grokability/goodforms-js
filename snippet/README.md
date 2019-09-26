@@ -46,7 +46,7 @@ At some point after your form is loaded, you can specifically attach to it by us
 ```js
 Goodverification('form_key', {
     email_field: document.getElementById('my_email_field'),
-    form: document.getElementById('my_form), //usually can be guessed from the email_field, above - but if it can't...
+    form: document.getElementById('my_form'), //usually can be guessed from the email_field, above - but if it can't...
     submit_button: document.getElementById('my_submit_button')
 });
 ```

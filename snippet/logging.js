@@ -15,6 +15,12 @@ class Log {
         }
     }
 
+    debugdir(msg) {
+        if(this.debug_enabled) {
+            this.log_at_level('dir',msg)
+        }
+    }
+
     log_at_level(level,msg) {
         if(console && console[level]) {
             console[level](msg)

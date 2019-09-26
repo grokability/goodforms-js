@@ -8,6 +8,7 @@ export default function (form_key, options) {
     }
     if(!form_key) {
         log.error("Form key was not set")
+        return
     }
     if(!options || (!options.email_field && !options.manual)) {
         return auto(form_key, options)
