@@ -93,4 +93,12 @@ var my_verifier = Goodverification('form_key', {manual: true});
 my_verifier.verify("some_email@some_domain",function (results) {
     console.log("Results are: "+results)
 })
+
+my_verifier.challenge("some_email@some_domain", challenge, function (results) {
+    console.log("Results are: "+results)
+})
+
+my_verifier.response("some_email@some_domain", pin, function (results) {
+    console.log("Results are: "+results)
+})
 ```

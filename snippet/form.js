@@ -3,14 +3,32 @@ import log from "./logging"
 import { is_array } from "./utils"
 import JSONP from "browser-jsonp"
 
-import tingle from "tingle.js"
+//import tingle from "tingle.js"
 
 import Tooltip from "tooltip.js"
 
-import 'tingle.js/dist/tingle.min.css' //FIXME - we should perhaps set the rollup config to NOT inject by default, and then we do it ourselves later when needed?
+import MicroModal from 'micromodal';
+
+//import 'tingle.js/dist/tingle.min.css' //FIXME - we should perhaps set the rollup config to NOT inject by default, and then we do it ourselves later when needed?
                                         //if other people are also using the Tingle library, then this would prevent us all from conflicting with each other
 
 import './popper.css' //FIXME - this also should only be loaded if needed (allow customers to override CSS I guess?)
+
+import './micromodal.css' //FIXME - only import when it's needed so we don't unnecessarily junk up the DOM
+
+// FIXME - I also don't like Tingle very much, I think I want to swap it for Micromodal.js
+// import MicroModal from 'micromodal';  // es6 module
+
+var node_creator = function (name, attributes, text) {
+    var elem = document.createElement(name)
+    for (var key in attributes) {
+        elem.setAttribute(key,attributes[key])
+    }
+    if(text) {
+        elem.appendChild(document.createTextNode(text))
+    }
+    return elem
+}
 
 export default class Form {
     constructor(options) {
@@ -69,8 +87,9 @@ export default class Form {
         if(this.form) {
             let old_onsubmit = this.form.onsubmit
             this.form.onsubmit = function (event) {
+                var results
                 if(old_onsubmit) {
-                    let results = old_onsubmit(event) //FIXME - confusing, *their* old onsubmit handler fires *first*?
+                    results = old_onsubmit(event) //FIXME - confusing, *their* old onsubmit handler fires *first*?
                 }
                 if(results) {
                     return this.onsubmit_handler(event)
@@ -118,11 +137,13 @@ export default class Form {
                 this.disable_submits()
                 break
 
-                case "GOOD":
+                case "GOOD": //FIXME copypasta EVERYWHERE
                 //FIRE HOOKS FIRST? FIXME
                 if(this.mytooltip) {
                     this.mytooltip.hide()
                 }
+                this.insert_checksum(results.checksum)
+                this.insert_status(results.status)
                 this.enable_submits()
                 break
 
@@ -136,7 +157,160 @@ export default class Form {
         })
     }
 
+    insert_checksum(value) {
+        var checksum_element = document.getElementById('goodverification_checksum')
+        if(checksum_element) {
+            checksum_element.value = value
+            return
+        }
+
+        this.form.appendChild(node_creator('input', {'type': 'hidden','name': 'checksum','value': value,'id': 'goodverification_checksum'}))
+    }
+
+    insert_status(status) { //FIXME this is copypasta relative to insert_checksum()
+        var status_element = document.getElementById('goodverification_status')
+        if(status_element) {
+            status_element.value = status
+            return
+        }
+
+        this.form.appendChild(node_creator('input', {'type': 'hidden','name': 'status','value': status,'id': 'goodverification_status'})) //FIXME that name is going to collide
+    }
+
+    get_modal(challenge_key) { //TODO - this needs breaking up, it's a little rambly
+        log.debug("Getting modal - challenge key is: "+challenge_key)
+        if(!this.modal) {
+            /*
+            need to insert this right before the close-body tag. How in the hell will we do that?!
+            document.body gives us the body tag
+            .appendChild() will let you insert nodes, I guess?
+
+            <!-- Container -->
+            <div id="modal-1" aria-hidden="true">
+                <!-- Overlay -->
+                <div tabindex="-1" data-micromodal-close>
+                    <!-- Container -->
+                    <div role="dialog" aria-modal="true" aria-labelledby="modal-1-title" >
+                        <header>
+                            <h2 id="modal-1-title">
+                            Modal Title
+                            </h2>
+
+                            <!-- [4] -->
+                            <button aria-label="Close modal" data-micromodal-close></button>
+                        </header>
+
+                        <div id="modal-1-content">
+                            Modal Content
+                        </div>
+                    </div>
+                </div>
+            </div>
+            */
+            /*
+            //something I'm thinking about - doesn't work yet, and it doesn't make sense because
+            you can't have two div's at the same level. But maybe something like this? Clever array stuff?
+            Dunno. 
+            var _test = {div: [{id: "modal-1","aria-hidden": true},{ //use native JS types; automatically cast bool to text
+                div: [{tabindex: -1,"data-micromodal-close: ""},{ //use integer type, cast to text
+                    div: [{role: "dialog","aria-modal": true,"aria-labelledby":"modal-1-title"},{
+                        header: [{},{
+                            h2: [{id: "modal-1-title"},"Modal Title"], //detect text?
+                            button: [{"aria-label": "Close modal","data-micromodal-close":""},{}] //omit?
+                        },
+                        div: [{id: "modal-1-content"},"Modal Content"]] //text!
+                    }]
+                }]
+            }]}
+
+            if you needed *TWO* divs or something, you could do:
+
+            {div: [{id: "blah"},[
+                {div: [{},{}]},
+                {div: [{},{}]}
+            ]]}
+            */
+
+            //FIXME prolly need to rename all of these classes to something unique
+            //FIXME will need to update the CSS accordingly as well.
+            var modal = node_creator("div", {"id": "goodverification-modal", "aria-hidden":"true", "class": "modal micromodal-slide"})
+
+            var overlay = node_creator("div", {"tabindex": "-1", "data-micromodal-close": "", "class": "modal__overlay"})
+
+            var container = node_creator("div", {"role": "dialog","aria-modal": "true", "aria-labelledby": "modal-1-title", "class": "modal__container"})
+            
+            var header = node_creator("header", {"class":"modal__header"})
+            
+            var h2 = node_creator("h2", {"id": "modal-1-title","class": "modal__title"},"Too Many Verifications")
+
+            var close_button = node_creator("button", {"aria-label": "Close modal","data-micromodal-close": "", "class": "modal__close"})
+
+            header.appendChild(h2)
+            header.appendChild(close_button)
+
+            var content = node_creator("div", {"id":"modal-1-content","class": "modal__content"},  "Too many verifications from this IP. We need to send you an email to verify that you are you! "+
+            "If you agree, re-type your email here: ")
+            var input = node_creator("input", {"type": "text","id": "goodverification_challenge_address"})
+            content.appendChild(input)
+
+            var footer = node_creator("footer", {"class":"modal__footer"})
+            var button = node_creator("button", {"class":"modal__btn modal__btn-primary"},"Continue")
+            button.onclick = () => {
+                if(this.email_field.value != document.getElementById('goodverification_challenge_address').value) {
+                    log.debug("Field value: "+this.email_field.value+" , challenge_address: "+document.getElementById('goodverification_challenge_address').value)
+                    document.getElementById("modal-1-content").innerHTML = "Email doesn't match field on form!" //FIXME - don't use innerHTML
+                    //this.modal.setContent("Email doesn't match field on form!")
+                    //can we yank the 'submit' button? FIXME!
+                    return
+                }
+                this.challenge(this.email_field.value,challenge_key, (results) => {
+                    log.debug("Challenge results are: ")
+                    log.debugdir(results)
+                    if(results.status == "ACCEPTED") {
+                        document.getElementById("modal-1-content").innerHTML = "Input emailed PIN: <input type='text' id='goodverification_pin' />" // FIXME - don't use innerHTML?
+                        button.onclick = () => {
+                            let pin = document.getElementById('goodverification_pin').value
+                            this.response(this.email_field.value,challenge_key, pin, (response) => {
+                                log.debugdir(response)
+                                if(response.status == "GOOD") {
+                                    MicroModal.close('goodverification-modal')
+                                    this.insert_checksum(response.checksum)
+                                    this.insert_status(response.status)
+                                    this.enable_submits()
+                                }
+                            })
+                        }
+                        //this.modal.setContent("Input emailed PIN: <input type='text' id='goodverification_pin' />")
+                    } else {
+                        window.alert("Challenge rejected!") //FIXME - should never happen tho!
+                    }
+                })
+            }
+            footer.appendChild(button)
+            footer.appendChild(node_creator("button",{"class": "modal__btn","data-micromodal-close": "","aria-label":"Close this dialog window"},"Close"))
+
+            container.appendChild(header)
+            container.appendChild(content)
+            container.appendChild(footer)
+
+            overlay.appendChild(container)
+            modal.appendChild(overlay)
+
+            document.body.appendChild(modal)
+            this.modal = true
+        }
+        return this.modal
+    }
+
     display_challenge_modal(challenge_key) {
+        this.get_modal(challenge_key)
+        MicroModal.show('goodverification-modal',{
+            debugMode: true,
+            awaitCloseAnimation: true,
+            onShow: modal => console.info(`${modal.id} is shown`),
+            onClose: modal => console.info(`${modal.id} is hidden`), 
+        })
+        /* 
         if(!this.modal) {
             this.modal = new tingle.modal({
                 footer: true,
@@ -183,7 +357,8 @@ export default class Form {
         this.modal.setContent("Too many verifications from this IP. We need to send you an email to verify that you are you! "+
                                 "If you agree, re-type your email here: <input type='text' id='goodverification_challenge_address' />")
         this.modal.open()
-}
+        */
+    }
 
     onsubmit_handler(event) {
         DO_SOMETHING_CLEVERER()
@@ -211,6 +386,21 @@ export default class Form {
                 //     case "GOOD":
 
                 // }
+            }
+        })
+    }
+
+    response(email, challenge_key, pin, callback) {
+        JSONP({url: HOST+"/response",
+            data: {email: email, challenge_key: challenge_key, pin: pin, form_key: this.form_key},
+            success: (data) => {
+                if(this.mytooltip) {
+                    this.mytooltip.hide()
+                }
+                this.enable_submits()
+
+                callback(data)
+        
             }
         })
     }
