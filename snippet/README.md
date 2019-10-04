@@ -73,7 +73,7 @@ If your functions returns `false`, the default behavior of the form will be over
 If you wish to use promises in your code, do this - 
 
 ```js
-Goodverification({
+Goodverification('form_key', {
     onWhatever: function (something,callback) {
         your.stream.of.promises.then(function () {
             //your code here
@@ -102,3 +102,84 @@ my_verifier.response("some_email@some_domain", pin, function (results) {
     console.log("Results are: "+results)
 })
 ```
+
+# REFERENCE
+
+## Auto-Mode (easier)
+```js
+Goodverification('form_key');
+```
+Will automatically find all forms on your page that have an email element, and attempt to verify them. Email elements are:
+
+- an `<input>` with a `type="email"`
+- an `<input>` with a `name="email"`
+- an `<input>` with an `id="email"`
+
+The associated form, will have any and all submit buttons disabled until the email field is marked as valid. Submit buttons are:
+
+- an `<input>` with a `type="submit"`
+- a `<button>` with a `type` that is *not* `"button"` nor `"reset"`
+
+The result of the above function will be an array of Goodverification objects (as explained in the section below)
+
+If you do not want all forms on your page to be treated this way, or the script cannot find your form or submit button or email field, 
+you need to use the more explicit instantiation, in the section below.
+
+Once the email is considered 'valid', the form will be submitted normally with two additional fields - 
+
+`goodverification_checksum` will be set to a string with the verification checksum.
+`goodverification_status` will be set to the extended 'status' of the email - `valid`, `unknown`, or `catchall`. It is not possible to
+submit an `invalid` email address (that's kinda the point).
+
+You can inspect the checksum to determine whether or not the email was legitimately verified by FIXME FILL THIS IN (confirmation step)
+
+## Explicit Mode
+
+```js
+var my_verifier = Goodverification('form_key', {
+    email_field: document.getElementById('your_email_dom_element'), 
+    form: document.getElementById('your form element'), // FIXME - I should actually check these since they're going to blow up if you pass the wrong thing! (also, jquery-unpacker might be nice)
+    submit_button: document.getElementById('your_submit_button'), // you may also pass an ARRAY of submit buttons instead
+    debug: true, //defaults to false, adds additional debugging output to javascript console
+    onGood: function () {},
+    onBad: function () {},
+    onChallenge: function () {},
+    onError: function () {},
+    manual: true, //if set, NONE of the standard behavior will ever be invoked. Verification can only be invoked manually. See below.
+    css: false, // FIXME - not yet implemented (and not sure if we should!)
+}) //FIXME - should ensure that if you pass anything unexpected, it errors and doesn't silently accept it. Will reduce support.
+```
+Please note that in order to attach to multiple forms, the function must be invoked once per email address field.
+
+If you do not wish for your submit buttons to be affected, you may set `submit_button` to `false` **FIXME** NOT IMPLEMENTED YET!!!
+
+The callback functions will fire *before* the default behaviors of the script are invoked.
+
+If the script returns *EXACTLY* `true`, those behaviors will still fire normally. It must not return `1` or anything else that may evaluate to true in Javascript; it needs to explicitly be `true`.
+
+If the script returns `false`, those behaviors will be cancelled. It must not return `0` or `""` or `null` or anything else; it needs to be explicitly `false`.
+
+If the script instead returns a function, that function will be invoked with a callback. If that function fires the callback, the normal behaviors
+will be triggered at that time. To prevent those behaviors, simply do not execute the callback.
+
+Any other returned types from the functions will be considered an error.
+
+## Custom styles
+
+FIXME - document CSS overrides you can put in!
+
+## Manual Mode
+```js
+var my_verifier = Goodverification('form_key', {
+    manual: true,
+    debug: true, //defaults to false, adds additional debugging output to javascript console
+})
+```
+
+### Verification
+```js
+my_verifier.verify(address, callback (results) {
+
+})
+```
+
