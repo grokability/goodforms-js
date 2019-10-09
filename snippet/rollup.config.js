@@ -22,7 +22,9 @@ module.exports = {
   plugins: [      
     commonjs(),
     resolve(),
-    postcss(),
+    postcss({
+      inject: false
+    }),
     buble()
   ]
 }

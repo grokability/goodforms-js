@@ -20,11 +20,11 @@ export default function (form_key,options) {
         delete my_options.debug //don't want to keep passing this down to each Verify
     }
     let activated_forms=[]
-    for(let form in document.forms) { //olde-skoole DOM0 FTW!
+    for(let form = 0 ; form < document.forms.length ; form++ ) { //olde-skoole DOM0 FTW!
         log.debug("Checking form: "+form+" for verifiable email address fields...")
-        for(let element in document.forms[form].elements) { // FIXME I think this iterates names *AND* numbers
-            log.debug("Checking field #"+element+" to see if it's an email address field")
-            let this_field = document.forms[form].elements[element]
+        for(let i = 0; i < document.forms[form].elements.length ; i ++ ) {
+            log.debug("Checking field #"+i+" to see if it's an email address field")
+            let this_field = document.forms[form].elements[i]
             if(this_field.type == "email" || this_field.name == "email" || this_field.id == "email") {
                 let options_copy = duplicate(my_options)
                 log.debug("Found candidate field. Name: "+this_field.name+" Type: "+this_field.type+" ID: "+this_field.id)

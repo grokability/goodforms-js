@@ -14,3 +14,7 @@ export function is_array(obj) {
     }
     return false
 }
+
+export function is_function(functionToCheck) {
+    return functionToCheck && {}.toString.call(functionToCheck) === '[object Function]'
+}
