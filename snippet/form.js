@@ -171,11 +171,12 @@ export default class Form {
         if(this.form) {
             let old_onsubmit = this.form.onsubmit
             this.form.onsubmit = (event) => {
+                log.debug("On Submit handler firing!")
                 var results
                 if(old_onsubmit) {
                     results = old_onsubmit(event) //FIXME - confusing, *their* old onsubmit handler fires *first*?
-                }
-                if(results) {
+                }                                   // Well, it could make sense - if you wanted to do something to interrupt the verification, you could?
+                if(!old_onsubmit || results) {
                     return this.onsubmit_handler(event)
                 }
             }
@@ -230,11 +231,14 @@ export default class Form {
         log.error("Unknown type returned from handler '"+name+"' - "+(typeof result))
     }
 
-    onchange_handler(event) { //TODO - I almost feel like this could go away, entirely? Just set the onchange_handler to be verify() ?
+    onchange_handler(event) {
+        this.submittable = false //field has changed; not submittable until this returns!
+        this.verifying = this.email_field.value
+        //FIXME - should we set an 'in-flight' variable, so we know not to double-verify?
         this.verify(this.email_field.value, (results) => {
             log.debug("Verification results are: ")
             log.debugdir(results)
-            //so weird, but the 'verify' method fires all the appropriate cllabacks, so we don't do anything here?
+            //so weird, but the 'verify' method fires all the appropriate callbacks, so we don't do anything here?
         })
     }
 
@@ -260,8 +264,8 @@ export default class Form {
             this.submittable = false
             ///uh....throw up a prompt?
             this.modal.show(challenge_key, () => {
-                if(this.email_field.value != document.getElementById('goodverification_challenge_address').value) { //FIXME - 'reaching in' to another module's DOM? gauche
-                    log.debug("Field value: "+this.email_field.value+" , challenge_address: "+document.getElementById('goodverification_challenge_address').value)
+                if(this.email_field.value != this.modal.get_challenge_address()) { 
+                    log.debug("Field value: "+this.email_field.value+" , challenge_address: "+this.modal.get_challenge_address())
                     this.modal.bad_address()
                                                                                                                 //TODO - interntaionalize!
                     return
@@ -271,19 +275,17 @@ export default class Form {
                     log.debugdir(results)
                     if(results.status == "ACCEPTED") {
                         this.modal.pin_input()
-                        this.modal.button.onclick = () => { //FIXME - feels weird to manipulate members like this? Maybe it's fine.
-                            let pin = document.getElementById('goodverification_pin').value //FIXME - 'reaching in' to foreign DOM still
+                        this.modal.set_modal_action( () => {
+                            let pin =this.modal.get_pin_code()
                             this.response(this.email_field.value,challenge_key, pin, (response) => {
                                 log.debugdir(response)
                                 if(response.status == "GOOD") {
                                     this.modal. hide()
                                     update_hidden_fields(this.form, response.checksum, response.status)
-                                    // this.insert_checksum(response.checksum)  // BROKEN!!!! FIXME
-                                    // this.insert_status(response.status)  // BROKEN!!!! FIXME
                                     this.enable_submits()
                                 }
                             })
-                        }
+                        })
                     } else {
                         window.alert("Challenge rejected!") //FIXME - should never happen tho!
                     }
@@ -300,8 +302,20 @@ export default class Form {
     }
 
     onsubmit_handler(event) {
-        DO_SOMETHING_CLEVERER()
-        JSONP("url")
+        //customer's hooks have already fired, let's go!
+        //the additional check against the contents of the field are just in case some
+        //browsers aren't quite so religious about running onChange handlers before onSubmit
+        if(this.submittable && this.email_field.value === this.verifying) {
+            return true
+        }
+        if(this.email_field.value !== this.verifying) {
+            this.verify(this.email_field.value, (results) => {  //FIXME - this could double-verify!
+                if(this.submittable) { //don't directly inspect 'results', assume the onBlah handlers will update 'submittable'
+                    this.form.submit()
+                }
+            })
+        }
+        return false //the 'verify' callback above will actually do the work of submitting the form
     }
 
     // LOW-LEVEL JSON helpers
@@ -334,6 +348,8 @@ export default class Form {
                 }
                 if(callback) { //TODO - should callback fire *first*, or *last*?
                     //I kinda feel like all the 'manual' stuff will use this, but nothing else will.
+                    //oh, I take that back - if you try and submit the form and it hasn't been validated; then _that_
+                    // verification will use this!
                     callback(data)
                 }
             }

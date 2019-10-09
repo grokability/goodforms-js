@@ -45,9 +45,9 @@ At some point after your form is loaded, you can specifically attach to it by us
 
 ```js
 Goodverification('form_key', {
-    email_field: document.getElementById('my_email_field'),
+    email_field: document.getElementById('my_email_field'), //you can also send a jQuery-like object - $('#my_email_field') - or just an ID of an element - 'my_email_field'
     form: document.getElementById('my_form'), //usually can be guessed from the email_field, above - but if it can't...
-    submit_button: document.getElementById('my_submit_button')
+    submit_button: document.getElementById('my_submit_button') //can also be an array of buttons, or array of strings, or a jQuery-like selector of multiple objects
 });
 ```
 
@@ -138,7 +138,7 @@ You can inspect the checksum to determine whether or not the email was legitimat
 ```js
 var my_verifier = Goodverification('form_key', {
     email_field: document.getElementById('your_email_dom_element'), 
-    form: document.getElementById('your form element'), // FIXME - I should actually check these since they're going to blow up if you pass the wrong thing! (also, jquery-unpacker might be nice)
+    form: document.getElementById('your form element'),
     submit_button: document.getElementById('your_submit_button'), // you may also pass an ARRAY of submit buttons instead
     debug: true, //defaults to false, adds additional debugging output to javascript console
     onGood: function () {},
@@ -183,3 +183,14 @@ my_verifier.verify(address, callback (results) {
 })
 ```
 
+## Event Flow
+
+if you set an onSubmit handler in the form, that will fire *first*, before any Goodverification handlers fire. If your handler returns `false`, the Goodverification
+handlers will not be invoked.
+
+If you set an onGood, onBad, etc. handler, those will be fired *before* the Goodverification handlers fire. If your handler returns `false`, the Goodverification
+handlers will not be invoked. If you need to do something asynchronously, return a `function()` instead, and that function will be passed a callback to the normal
+Goodverification handling code. If your asynchronous callback is succesful, invoke the callback we passed you. If it is not, simply don't call the callback at all.
+
+If you invoke a raw `.verify(address, callback)` call, that callback will fire *after* the onGood, onBad, etc. handlers have fired. If you want to interrupt those handlers'
+actions, you should instead attach callbacks to onGood, onBad, etc.

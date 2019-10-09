@@ -24,8 +24,8 @@ let node_creator = function (name, attributes, text) {
 }
 
 export function update_hidden_fields(form, checksum, status) {
-    insert_or_update_hidden('checksum','goodverification_checksum',checksum, form)
-    insert_or_update_hidden('status','goodverification_status',status, form)
+    insert_or_update_hidden('goodverification_checksum','goodverification_checksum',checksum, form)
+    insert_or_update_hidden('goodverification_status','goodverification_status',status, form)
 }
 
 let insert_or_update_hidden = function (name,id,value, form) {
@@ -101,13 +101,13 @@ export class modal {
         this.email_field = email_field
     }
 
-    show(challenge_key, onclick_handler) {
+    show(challenge_key, button_callback) {
         if(!this.css) {
             styleInject(micromodal_css, {insertAt: 'top'}) //insert at top so customer-generated styles will override
             this.css = true //TODO - on a page with many forms, the CSS will be re-inserted multiple times
         }
         this.get_modal(challenge_key)
-        this.button.onclick = onclick_handler
+        this.set_modal_action(button_callback)
         this.display_challenge_modal(challenge_key)
     }
 
@@ -118,6 +118,18 @@ export class modal {
             document.body.removeChild(this.modal)
             this.modal = null
         }
+    }
+
+    set_modal_action(callback) {
+        this.button.onclick = callback
+    }
+
+    get_challenge_address() {
+        return document.getElementById('goodverification_challenge_address').value
+    }
+
+    get_pin_code() {
+        return document.getElementById('goodverification_pin').value 
     }
 
     get_modal(challenge_key) { //TODO - this needs breaking up, it's a little rambly
