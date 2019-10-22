@@ -1,1 +1,7 @@
 node_modules
+dev-verify.js
+dev-verify.min.js
+dev-verify.min.js.map
+prod-verify.js
+verify.js
+verify.js.map

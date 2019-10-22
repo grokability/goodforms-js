@@ -6,9 +6,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "watch": "rollup -c --watch --environment SNIPPET_ENV:dev",
-    "compress": "uglifyjs --source-map -o bundle.min.js bundle.js",
-    "production": "exit 1",
-    "publish": "exit 1"
+    "compress": "uglifyjs --source-map -o dev-verify.min.js dev-verify.js",
+    "production": "rollup -c --environment SNIPPET_ENV:production && uglifyjs --source-map -o verify.js prod-verify.js",
+    "publish": "aws --profile bespin s3 cp ./ s3://cdn.goodverification.com/ --recursive --exclude '*' --include 'verify.js*'"
   },
   "author": "",
   "license": "SEE LICENSE IN LICENSE.TXT",

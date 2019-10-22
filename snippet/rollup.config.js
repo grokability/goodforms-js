@@ -9,7 +9,7 @@ const commonjs = require('rollup-plugin-commonjs')
 module.exports = {
   input: 'index.js',
   output: {
-    file: 'bundle.js',
+    file: process.env.SNIPPET_ENV == "production" ? 'prod-verify.js': 'dev-verify.js',
     format: 'umd', // I believe this is the right call; use 'iffe' maybe instead?
     name: 'Goodverification',
     sourcemap: 'inline',
