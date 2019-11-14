@@ -8,9 +8,9 @@
 - `npm run compress` will compress it - usually just to compare sizes.
 - `npm run production` will build and compress the production version of the JS.
 - `npm run publish` will publish the JS (*AND* the map file) to the production S3 bucket.
+- `npm run purge` will invalidate the Cloudfront content, forcing it to be re-requested from the origin bucket
 
 The production javascript is available at:
 
+- https://cdn.goodverification.com/verify.js (requesting HTTP redirects to HTTPS)
 - https://s3-us-west-2.amazonaws.com/cdn.goodverification.com/verify.js <- TLS, no CDN delay(!)
-- http://cdn.goodverification.com/verify.js <- Plain HTTP, but custom domain, no CDN delay
-- NOT YET AVAILABLE AT: https://cdn.goodverification.com (but it will be, when I add CloudFront)

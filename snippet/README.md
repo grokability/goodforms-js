@@ -19,12 +19,20 @@ $(function() {Goodverification('form_key');}))
 
 And it should try to attach to any field in your page with a _name_ of `email`, or of type `email`, or an `id` of `email`.
 
-## How to use in AMD or CJS (Require.JS or Common.js)
+## How to use from Require.JS (AMD)
 
 ```js
-var Goodverification = require("I don't know I need to test this") // FIXME
+require(['https://cdn.goodverification.com/verify.js'], function(Goodverification) {
+    Goodverification('form_key', {debug: true}) //use as normal
+});
+```
 
-Goodverification('form_key')
+## How to use as a Common.JS module
+
+Download the Verification Javascript from https://cdn.goodverification.com/verify.js , rename it to Goodverification, and then:
+
+```js
+var Goodverification = require('./Goodverification')
 ```
 
 ## Debugging

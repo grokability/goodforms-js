@@ -153,7 +153,7 @@ export class modal {
             header.appendChild(h2)
             header.appendChild(close_button)
 
-            var content = node_creator("div", {"id":"modal-1-content","class": "modal__content"},  "Too many verifications from this IP. We need to send you an email to verify that you are you! "+
+            var content = node_creator("div", {"id":"modal-1-content","class": "modal__content"},  "We can't determine if this email address is valid right now. We need to send you a verification email. "+
             "If you agree, re-type your email here: ") //TODO - internationalize!
             var input = node_creator("input", {"type": "text","id": "goodverification_challenge_address"})
             content.appendChild(input)
