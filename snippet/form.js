@@ -276,12 +276,13 @@ export default class Form {
                     if(results.status == "ACCEPTED") {
                         this.modal.pin_input()
                         this.modal.set_modal_action( () => {
-                            let pin =this.modal.get_pin_code()
+                            let pin = this.modal.get_pin_code()
                             this.response(this.email_field.value,challenge_key, pin, (response) => {
                                 log.debugdir(response)
                                 if(response.status == "GOOD") {
-                                    this.modal. hide()
+                                    this.modal.hide()
                                     update_hidden_fields(this.form, response.checksum, response.status)
+                                    this.submittable = true
                                     this.enable_submits()
                                 }
                             })
@@ -308,7 +309,9 @@ export default class Form {
         if(this.submittable && this.email_field.value === this.verifying) {
             return true
         }
+        log.debug("Cannot submit form - submittable? "+this.submittable+" our field value? "+this.email_field.value+" what we're verifying? "+this.verifying)
         if(this.email_field.value !== this.verifying) {
+            log.debug("sending new verification!")
             this.verify(this.email_field.value, (results) => {  //FIXME - this could double-verify!
                 if(this.submittable) { //don't directly inspect 'results', assume the onBlah handlers will update 'submittable'
                     this.form.submit()
