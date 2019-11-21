@@ -74,8 +74,6 @@ export default class Form {
             this.submit_button = submit_buttons
         }
         this.initialize_dom()
-        //initialize tooltip and modal here?
-        // this.tooltip = new tooltip(this.email_field)
         this.modal = new modal(this.email_field)
         this.submittable = false
     }
