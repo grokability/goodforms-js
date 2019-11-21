@@ -2,12 +2,6 @@
 import MicroModal from 'micromodal'
 import micromodal_css from './micromodal.css'
 
-//import 'tingle.js/dist/tingle.min.css'
-//import tingle from "tingle.js"
-
-import Tooltip from "tooltip.js" //TODO - I think this is what's bloating everything out :/ It's huge :/
-import tooltip_css from './tooltip.css'
-
 import styleInject from 'style-inject'
 
 import log from "./logging"
@@ -183,7 +177,7 @@ export class modal {
             debugMode: true,
             awaitCloseAnimation: true,
             onShow: modal => console.info(`${modal.id} is shown`),
-            onClose: modal => console.info(`${modal.id} is hidden`), 
+            onClose: modal => console.info(`${modal.id} is hidden`)
         })
     }
 
@@ -195,83 +189,4 @@ export class modal {
         document.getElementById("modal-1-content").innerHTML = "Input emailed PIN: <input type='text' id='goodverification_pin' />" // FIXME - don't use innerHTML?
     }
 
-    //FIXME - not used anymore.
-    display_deprecated_tingle_modal(challenge_key) {
-        /* 
-        if(!this.modal) {
-            this.modal = new tingle.modal({
-                footer: true,
-                stickyFooter: false,
-                closeMethods: ['button'], // ['overlay', 'button', 'escape'],
-                closeLabel: "Close",
-                //cssClass: ['custom-class-1', 'custom-class-2'],
-                onOpen: function() {
-                    console.log('modal open')
-                },
-                onClose: function() {
-                    console.log('modal closed')
-                },
-                beforeClose: function() {
-                    // here's goes some logic
-                    // e.g. save content before closing the modal
-                    return true // close the modal
-                    //return false; // nothing happens
-                }
-            })
-            this.modal.addFooterBtn('Cancel', 'tingle-btn', () => {
-                // here goes some logic
-                this.modal.close()
-            })
-            
-            this.modal.addFooterBtn('Send Challenge Email', 'tingle-btn tingle-btn--primary', () => {
-                // here goes some logic
-                if(this.email_field.value != document.getElementById('goodverification_challenge_address').value) {
-                    log.debug("Field value: "+this.email_field.value+" , challenge_address: "+document.getElementById('goodverification_challenge_address').value)
-                    this.modal.setContent("Email doesn't match field on form!")
-                    //can we yank the 'submit' button? FIXME!
-                    return
-                }
-                this.challenge(this.email_field.value,challenge_key, (results) => {
-                    log.debug("Challenge results are: "+results)
-                    console.dir(results)
-                    if(results.status == "ACCEPTED") {
-                        this.modal.setContent("Input emailed PIN: <input type='text' id='goodverification_pin' />")
-                    }
-                })
-                //this.modal.close()
-            })
-        }
-        this.modal.setContent("Too many verifications from this IP. We need to send you an email to verify that you are you! "+
-                                "If you agree, re-type your email here: <input type='text' id='goodverification_challenge_address' />")
-        this.modal.open()
-        */
-    }
-}
-
-export class tooltip {
-    constructor(email_field) {
-        this.tooltip = null
-        this.email_field = email_field
-        this.css = false //TODO - could get inserted multiple times. We can write our own style injector if needed and put it in with an 'id' maybe?
-    }
-
-    show(msg) {
-        if(!this.css) {
-            styleInject(tooltip_css, {insertAt: 'top'}) //deliberately insert at top so customer styles may override
-            this.css = true
-        }
-        if(!this.tooltip) {
-            this.tooltip = new Tooltip(this.email_field, {placement: 'bottom', title: msg, trigger: 'manual'})
-        } else {
-            this.tooltip.updateTitleContent(msg)
-        }
-        this.tooltip.show()
-    }
-
-    hide() {
-        if(this.tooltip) {
-            this.tooltip.hide()
-            //should we 'destroy' it? if so that's this.tooltip.dispose()
-        }
-    }
 }

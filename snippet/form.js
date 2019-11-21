@@ -3,7 +3,7 @@ import log from "./logging"
 import { is_array, is_function } from "./utils"
 import JSONP from "browser-jsonp"
 
-import {tooltip, modal, update_hidden_fields} from "./visuals"
+import { modal, update_hidden_fields} from "./visuals" //commented-out: tooltip
 // import { domainToUnicode } from "url"
 // import { stringify } from "querystring"
 
@@ -60,7 +60,7 @@ export default class Form {
         if(!this.form) { //TODO - allow 'false' here (not null/undefined?) to permit no-form?
             return log.error("Could not determine Form!")
         }
-        if(!this.submit_button) { //TODO - allow 'false' here (not null/undefined?) to permit no-buttons?
+        if(!this.submit_button && this.submit_button !== false) { //'false' means "don't disable submit buttons"
             log.debug("Trying to find submit buttons...")
             let submit_buttons=[]
             for(let i=0; i< this.form.elements.length; i++) {
@@ -75,7 +75,7 @@ export default class Form {
         }
         this.initialize_dom()
         //initialize tooltip and modal here?
-        this.tooltip = new tooltip(this.email_field)
+        // this.tooltip = new tooltip(this.email_field)
         this.modal = new modal(this.email_field)
         this.submittable = false
     }
@@ -139,13 +139,13 @@ export default class Form {
             this[name] = node
             return true
         }
-        if(element instanceof Element) {
+        if((typeof(Element) !== "undefined" && element instanceof Element) || (element['nodeName'] && element['nodeType'] === 1)) {
             this[name] = element
             return true
         }
         if(is_array(element)) {
             for(let i = 0 ; i < element.length ; i++) {
-                if(!(element[i] instanceof Element)) {
+                if(!(element[i] instanceof element_type)) {
                     log.error("Array for "+name+" contains non-DOM element at index "+i)
                     return false
                 }
@@ -153,9 +153,11 @@ export default class Form {
             this[name] = element
             return true
         }
-        log.error("Unknown element type passed for "+name+": "+typeof(element))
+        log.error("Unknown element type passed for "+name+": "+typeof(element)+", and its prototype is: "+element.prototype+", and its source: "+element.prototype.toSource())
         return false
     }
+
+    //DOM-mangling stuff
 
     initialize_dom() {
         // set up the onchange handler for the email field
@@ -208,6 +210,8 @@ export default class Form {
         }
     }
 
+    // Event-management/hook-management helper method
+
     fire_hooks(name, callback) {
         log.debug("Firing hooks for: "+name)
         if(this.manual) {
@@ -231,7 +235,24 @@ export default class Form {
         log.error("Unknown type returned from handler '"+name+"' - "+(typeof result))
     }
 
+    setError(msg) {
+        if(this.email_field["setCustomValidity"]) {
+            this.email_field.setCustomValidity(msg);
+            return
+        }
+        //fallback for ancient browsers that do *NOT* have constraintValidation (IE, possibly others?!)
+        if(msg != "") {
+            window.alert(msg)
+        } else {
+            //the msg has been set to blank; a/k/a "it's okay now" - what do we do/say? Anything?
+            //it *could* make sense to say "okay, your email is OK now!" - but do we want to? I don't know!
+        }
+    }
+
+    // Event Handler methods
+
     onchange_handler(event) {
+        log.debug("ONCHANGE HANDLER TRIGGERED!") // FIXME - this is too noisy
         this.submittable = false //field has changed; not submittable until this returns!
         this.verifying = this.email_field.value
         //FIXME - should we set an 'in-flight' variable, so we know not to double-verify?
@@ -245,7 +266,7 @@ export default class Form {
     onbad_handler() {
         this.fire_hooks('onBad',() => {
             this.submittable = false
-            this.tooltip.show('Bad Email Address') //TODO - internationalize based on API response?
+            this.setError('Bad Email Address') //TODO - internationalize based on API response?
             this.disable_submits()    
         })
     }
@@ -253,7 +274,7 @@ export default class Form {
     ongood_handler(status, checksum) {
         this.fire_hooks('onGood',() => {
             this.submittable = true
-            this.tooltip.hide()
+            this.setError("")
             update_hidden_fields(this.form, checksum, status)
             this.enable_submits()
         })
@@ -326,6 +347,7 @@ export default class Form {
     // maybe yes only if manual is false?
 
     verify(email, callback) {
+        log.debug("VERIFY low-level method invoked!")
         JSONP({url: HOST+"/verify",
             data: {email: email, form_key: this.form_key}, 
             success: (data) => {
@@ -376,9 +398,12 @@ export default class Form {
         JSONP({url: HOST+"/response",
             data: {email: email, challenge_key: challenge_key, pin: pin, form_key: this.form_key},
             success: (data) => {
+                /* NB - the FIXME below may still hold water! Think about it!!!!
                 if(this.mytooltip) { //FIXME - instead invoke the onchange callback thing?
                     this.mytooltip.hide()
                 }
+                */
+                this.setError("") //clears error condition
                 this.enable_submits()
 
                 callback(data)

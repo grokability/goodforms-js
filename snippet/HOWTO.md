@@ -4,6 +4,8 @@
 
 `npm install` to install the required packages.
 
+The various versions of the snippet are built in the `dist/` subdirectory
+
 - `npm run watch` will dynamically rebuild the dev version of the JS.
 - `npm run compress` will compress it - usually just to compare sizes.
 - `npm run production` will build and compress the production version of the JS.

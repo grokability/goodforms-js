@@ -55,7 +55,8 @@ At some point after your form is loaded, you can specifically attach to it by us
 Goodverification('form_key', {
     email_field: document.getElementById('my_email_field'), //you can also send a jQuery-like object - $('#my_email_field') - or just an ID of an element - 'my_email_field'
     form: document.getElementById('my_form'), //usually can be guessed from the email_field, above - but if it can't...
-    submit_button: document.getElementById('my_submit_button') //can also be an array of buttons, or array of strings, or a jQuery-like selector of multiple objects
+    submit_button: document.getElementById('my_submit_button') 
+    //can also be an array of buttons, or array of strings, or a jQuery-like selector of multiple objects, or 'false' if you don't want to disable submit buttons
 });
 ```
 
@@ -139,7 +140,7 @@ Once the email is considered 'valid', the form will be submitted normally with t
 `goodverification_status` will be set to the extended 'status' of the email - `valid`, `unknown`, or `catchall`. It is not possible to
 submit an `invalid` email address (that's kinda the point).
 
-You can inspect the checksum to determine whether or not the email was legitimately verified by FIXME FILL THIS IN (confirmation step)
+You can inspect the checksum to determine whether or not the email was legitimately verified by using the certify API - details in PROTOCOL.md
 
 ## Explicit Mode
 
@@ -159,7 +160,7 @@ var my_verifier = Goodverification('form_key', {
 ```
 Please note that in order to attach to multiple forms, the function must be invoked once per email address field.
 
-If you do not wish for your submit buttons to be affected, you may set `submit_button` to `false` **FIXME** NOT IMPLEMENTED YET!!!
+If you do not wish for your submit buttons to be affected, you may set `submit_button` to `false`
 
 The callback functions will fire *before* the default behaviors of the script are invoked.
 

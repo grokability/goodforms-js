@@ -17,15 +17,20 @@ class Log {
 
     debugdir(msg) {
         if(this.debug_enabled) {
-            this.log_at_level('dir',msg)
+            if(typeof console !== "undefined" && console["dir"]) {
+                this.log_at_level('dir',msg)
+            } else {
+                this.log_at_level('debug',msg)
+            }
         }
     }
 
     log_at_level(level,msg) {
-        if(console && console[level]) {
+        if(typeof console !== "undefined" && console[level]) {
             console[level](msg)
             return true
         }
+        window.alert(level+": "+msg)
         return false
     }
 }
