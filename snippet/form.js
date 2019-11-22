@@ -261,35 +261,35 @@ export default class Form {
         })
     }
 
-    onbad_handler() {
+    onbad_handler(message) {
         this.fire_hooks('onBad',() => {
             this.submittable = false
-            this.setError('Bad Email Address') //TODO - internationalize based on API response?
+            this.setError(message) //TODO - internationalize based on API response?
             this.disable_submits()    
         })
     }
 
-    ongood_handler(status, checksum) {
+    ongood_handler(status, checksum, message) {
         this.fire_hooks('onGood',() => {
             this.submittable = true
-            this.setError("")
+            this.setError("") //we need this because it secretly is causing setCustomValidity(), but if we have a 'success message', how do we handle it? FIXME
             update_hidden_fields(this.form, checksum, status)
             this.enable_submits()
         })
     }
 
-    onchallenge_handler(challenge_key) {
+    onchallenge_handler(challenge_key, message) {
         this.fire_hooks('onChallenge',() => {
             this.submittable = false
             ///uh....throw up a prompt?
-            this.modal.show(challenge_key, () => {
+            this.modal.show(challenge_key, message, () => {
                 if(this.email_field.value != this.modal.get_challenge_address()) { 
                     log.debug("Field value: "+this.email_field.value+" , challenge_address: "+this.modal.get_challenge_address())
                     this.modal.bad_address()
                                                                                                                 //TODO - interntaionalize!
                     return
                 }
-                this.challenge(this.email_field.value,challenge_key, (results) => {
+                this.challenge(this.email_field.value, challenge_key, (results) => {
                     log.debug("Challenge results are: ")
                     log.debugdir(results)
                     if(results.status == "ACCEPTED") {
@@ -354,20 +354,20 @@ export default class Form {
                 }
                 switch(data.status) {
                     case "BAD":
-                    this.onbad_handler()
+                    this.onbad_handler(data.message)
                     break
     
                     case "GOOD":
-                    this.ongood_handler(data.status, data.checksum) //status is the wrong thing here.
+                    this.ongood_handler(data.status, data.checksum, data.message) //status is the wrong thing here.
                     break
     
                     case "CHALLENGE":
-                    this.onchallenge_handler(data.challenge_key)
+                    this.onchallenge_handler(data.challenge_key, data.message)
                     break
     
                     default:
                     log.error("UNKNOWN STATUS: "+data.status) //error here?
-                    this.onerror_handler()
+                    this.onerror_handler(data.message)
                 }
                 if(callback) { //TODO - should callback fire *first*, or *last*?
                     //I kinda feel like all the 'manual' stuff will use this, but nothing else will.

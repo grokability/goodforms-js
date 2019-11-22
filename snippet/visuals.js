@@ -95,7 +95,8 @@ export class modal {
         this.email_field = email_field
     }
 
-    show(challenge_key, button_callback) {
+    show(challenge_key, message, button_callback) {
+        this.message = message
         if(!this.css) {
             styleInject(micromodal_css, {insertAt: 'top'}) //insert at top so customer-generated styles will override
             this.css = true //TODO - on a page with many forms, the CSS will be re-inserted multiple times
@@ -132,6 +133,23 @@ export class modal {
 
             //FIXME prolly need to rename all of these classes to something unique
             //FIXME will need to update the CSS accordingly as well.
+            /*
+            There are a few bits of English here, that we need to replace. My initial instinct is to expand `message` (this.message)
+            into a more complex blob of text - something like:
+
+            // This sucks, and is stupid. Let's somehow do this better.
+            // honestly I'm tempted to go Iframe. Then the server can send whatever bullshit it wants.
+            // though that failed the last time we tried it. But we're smarter now :)
+            {
+                'close': 'Close modal',
+                'message': 'We can't determine if the email address is valid or not.',
+                'header': 'Too Many Verifications', // SIC FIXME - should not say this.
+                'prompt': "To verify your email address, we need to send you an email. If you agree, re-type your email here: ",
+                'continue': 'Continue',
+                'close_verbose?': 'Close this dialog window',
+                'close_again': 'Close'
+            }
+            */
             var modal = node_creator("div", {"id": "goodverification-modal", "aria-hidden":"true", "class": "modal micromodal-slide"})
 
             var overlay = node_creator("div", {"tabindex": "-1", "data-micromodal-close": "", "class": "modal__overlay"})
@@ -140,15 +158,15 @@ export class modal {
             
             var header = node_creator("header", {"class":"modal__header"})
             
-            var h2 = node_creator("h2", {"id": "modal-1-title","class": "modal__title"},"Too Many Verifications")
+            // var h2 = node_creator("h2", {"id": "modal-1-title","class": "modal__title"},"Too Many Verifications") # HOW to get that language?
 
             var close_button = node_creator("button", {"aria-label": "Close modal","data-micromodal-close": "", "class": "modal__close"})
 
-            header.appendChild(h2)
+            //header.appendChild(h2)
             header.appendChild(close_button)
 
-            var content = node_creator("div", {"id":"modal-1-content","class": "modal__content"},  "We can't determine if this email address is valid right now. We need to send you a verification email. "+
-            "If you agree, re-type your email here: ") //TODO - internationalize!
+            var content = node_creator("div", {"id":"modal-1-content","class": "modal__content"},  this.message+". "+
+            "To verify your email address, we need to send you an email. If you agree, re-type your email here: ") // FIXME - hardcoded en-us; should read it from server.
             var input = node_creator("input", {"type": "text","id": "goodverification_challenge_address"})
             content.appendChild(input)
 
