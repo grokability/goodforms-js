@@ -13,7 +13,7 @@ module.exports = {
     format: 'umd', // Allows use as IIFE, AMD, or CJS!
     name: 'Goodverification',
     sourcemap: 'inline',
-    intro: process.env.SNIPPET_ENV == "production" ? "var HOST = 'https://api.goodverification.com'" : "var HOST = 'http://10.0.1.5:8000'" // USUALLY that should be `localhost`!!!
+    intro: process.env.SNIPPET_ENV == "production" ? "var HOST = 'https://api.goodverification.com'" : "var HOST = 'http://10.0.1.4:8000'" // USUALLY that should be `localhost`!!!
                                                                                                                                             //and I need to find out how to dynamically look this up! it was .4 before!
   },
   watch: {
