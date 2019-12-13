@@ -31,6 +31,7 @@ const options_hash = {
 export default class Form {
     constructor(options) {
         log.debug("Invoking Class constructor!")
+        log.debugdir(options)
         
         for(let key in options) {
             log.debug("Setting: "+key+" to "+options[key])
