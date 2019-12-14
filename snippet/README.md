@@ -19,6 +19,12 @@ $(function() {Goodverification('form_key');}))
 
 And it should try to attach to any field in your page with a _name_ of `email`, or of type `email`, or an `id` of `email`.
 
+Verifications should fire when a user tabs-off of an email field, or tries to submit it. By default, those verification messages will be
+set to the element's status using HTML5 Constraint Validation - e.g. using setCustomValidity(). Additionally, the verification message will
+be set on the data-goodverification-status attribute in the email input field.
+
+Form submission will be prevented until the email field is marked as Valid.
+
 ## How to use from Require.JS (AMD)
 
 ```js
@@ -120,7 +126,7 @@ Goodverification('form_key');
 ```
 Will automatically find all forms on your page that have an email element, and attempt to verify them. Email elements are:
 
-- an `<input>` with a `type="email"`
+- an `<input>` with a `type="email"` (Warning: IE does not support this!)
 - an `<input>` with a `name="email"`
 - an `<input>` with an `id="email"`
 

@@ -25,6 +25,8 @@ export default function (form_key,options) {
         for(let i = 0; i < document.forms[form].elements.length ; i ++ ) {
             log.debug("Checking field #"+i+" to see if it's an email address field")
             let this_field = document.forms[form].elements[i]
+            log.debug("It's type is: "+this_field.type+" its name is: "+this_field.name+" and its id is: "+this_field.id)
+            //log.debugdir(this_field)
             if(this_field.type == "email" || this_field.name == "email" || this_field.id == "email") {
                 let options_copy = duplicate(my_options)
                 log.debug("Found candidate field. Name: "+this_field.name+" Type: "+this_field.type+" ID: "+this_field.id)

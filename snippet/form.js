@@ -240,12 +240,13 @@ export default class Form {
             return
         }
         //fallback for ancient browsers that do *NOT* have constraintValidation (IE, possibly others?!)
-        if(msg != "") {
-            window.alert(msg)
-        } else {
-            //the msg has been set to blank; a/k/a "it's okay now" - what do we do/say? Anything?
-            //it *could* make sense to say "okay, your email is OK now!" - but do we want to? I don't know!
-        }
+        this.email_field.setAttribute("data-goodverification-message",msg)
+        // if(msg != "") {
+        //     window.alert(msg)
+        // } else {
+        //     //the msg has been set to blank; a/k/a "it's okay now" - what do we do/say? Anything?
+        //     //it *could* make sense to say "okay, your email is OK now!" - but do we want to? I don't know!
+        // }
     }
 
     // Event Handler methods
@@ -265,7 +266,7 @@ export default class Form {
     onbad_handler(message) {
         this.fire_hooks('onBad',() => {
             this.submittable = false
-            this.setError(message) //TODO - internationalize based on API response?
+            this.setError(message)
             this.disable_submits()    
         })
     }
