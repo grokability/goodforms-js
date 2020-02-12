@@ -398,6 +398,8 @@ export default class Form {
         JSONP({url: HOST+"/response",
             data: {email: email, challenge_key: challenge_key, pin: pin, form_key: this.form_key},
             success: (data) => {
+                //FIXME - I don't think we handle the actual contents of the 'data' thing
+                //FIXME - see also 'bad_response' in challenge_server - I think that's wrong
                 /* NB - the FIXME below may still hold water! Think about it!!!!
                 if(this.mytooltip) { //FIXME - instead invoke the onchange callback thing?
                     this.mytooltip.hide()
