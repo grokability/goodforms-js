@@ -305,11 +305,13 @@ export default class Form {
                                     update_hidden_fields(this.form, response.checksum, response.status)
                                     this.submittable = true
                                     this.enable_submits()
+                                } else {
+                                    this.modal.bad_pin()
                                 }
                             })
                         })
                     } else {
-                        window.alert("Challenge rejected!") //FIXME - should never happen tho!
+                        window.alert("Challenge rejected!") //FIXME - should never happen tho! (well, unless maybe you sent too many emails?)
                     }
                 })
             }

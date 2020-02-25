@@ -110,8 +110,9 @@ export class modal {
         if(this.modal) {
             MicroModal.close('goodverification-modal')
             //should we dispose of it as well? It could be junking up their DOM I guess?
-            document.body.removeChild(this.modal)
-            this.modal = null
+            // I *think* that this is subsumed by our code to automagically clean up the modal onClose (see display_challenge_modal.onClose)
+            //document.body.removeChild(this.modal)
+            //this.modal = null
         }
     }
 
@@ -195,16 +196,28 @@ export class modal {
             debugMode: true,
             awaitCloseAnimation: true,
             onShow: modal => console.info(`${modal.id} is shown`),
-            onClose: modal => console.info(`${modal.id} is hidden`)
+            onClose: modal => {
+                console.info(`${modal.id} is hidden`)
+                if(this.modal) {
+                    document.body.removeChild(this.modal)
+                    delete this.modal
+                } else {
+                    console.info("Wait, what?! this.modal is null (or false, or something?!)")
+                }
+            }
         })
     }
 
     bad_address() {
-        document.getElementById("modal-1-content").innerHTML = "Email doesn't match field on form!" //FIXME - don't use innerHTML
+        document.getElementById("modal-1-content").innerHTML = "Email doesn't match field on form! Please retry: <input type='text' id='goodverification_challenge_address'>" //FIXME - don't use innerHTML
     }
 
     pin_input() {
         document.getElementById("modal-1-content").innerHTML = "Input emailed PIN: <input type='text' id='goodverification_pin' />" // FIXME - don't use innerHTML?
+    }
+
+    bad_pin() {
+        document.getElementById("modal-1-content").innerHTML = "<span style='color: red'>Invalid PIN entered. Please retry.</span><br>Input emailed PIN: <input type='text' id='goodverification_pin' />" // FIXME - don't use innerHTML?
     }
 
 }
