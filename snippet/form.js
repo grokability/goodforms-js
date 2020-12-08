@@ -305,9 +305,13 @@ export default class Form {
                                 log.debugdir(response)
                                 if(response.status == "GOOD") {
                                     this.modal.hide()
-                                    update_hidden_fields(this.form, response.checksum, response.status)
-                                    this.submittable = true
-                                    this.enable_submits()
+                                    /*
+                                     * We need the following because the integrator may have their own way of displaying
+                                     * a valid message, or hiding an *invalid* message - and we need to make sure
+                                     * their hooks fire correctly. But also, we *do* want to update the checksums and all the
+                                     * other default behavior of a 'good' verification
+                                     */
+                                    this.ongood_handler(response.status, response.checksum)
                                 } else {
                                     this.modal.bad_pin()
                                 }
@@ -317,8 +321,7 @@ export default class Form {
                         window.alert("Challenge rejected!") //FIXME - should never happen tho! (well, unless maybe you sent too many emails?)
                     }
                 })
-            }
-)
+            })
         })
     }
 
