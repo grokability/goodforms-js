@@ -213,8 +213,9 @@ export default class Form {
 
     fire_hooks(name, callback) {
         log.debug("Firing hooks for: "+name)
-        if(this.manual) {
-            return
+        if(this.manual) { //FIXME! Do I want to do this? TODO? (makes onChallenge very HARD!)
+            console.warn("NOT firing hooks and stuff cuz manual mode!!!!") //FIXME!
+            // return // FIXME - am I doing this or not?!
         }
 
         if(!this[name]) {
@@ -225,7 +226,7 @@ export default class Form {
         if(result === false) { //NEGATIVE RESULT from pre-callback - do *NOT* invoke callback!
             return
         }
-        if(result === true) { //TRUE RESULT - continue normal behavior
+        if(result === true || typeof(result) == "undefined") { //TRUE RESULT (or nothing returned) - continue normal behavior
             return callback()
         }
         if(is_function(result)) {
@@ -281,7 +282,9 @@ export default class Form {
     }
 
     onchallenge_handler(challenge_key, message) {
+        console.warn("low-level challenge handler invoked?") //FIXME debug
         this.fire_hooks('onChallenge',() => {
+            console.warn("inside of the hooks callback") //FIXME
             this.submittable = false
             ///uh....throw up a prompt?
             this.modal.show(challenge_key, message, () => {
@@ -366,6 +369,7 @@ export default class Form {
                     break
     
                     case "CHALLENGE":
+                    console.warn("CHALLENGE LEG INVOKING!") //FIXME !!!
                     this.onchallenge_handler(data.challenge_key, data.message)
                     break
     
