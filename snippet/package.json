@@ -14,12 +14,12 @@
   "author": "",
   "license": "SEE LICENSE IN LICENSE.TXT",
   "dependencies": {
+    "@popperjs/core": "^2.5.4",
     "browser-jsonp": "^1.1.5",
     "micromodal": "^0.4.2",
     "style-inject": "^0.3.0"
   },
   "devDependencies": {
-    "cypress": "^3.4.1",
     "regenerator-runtime": "^0.13.3",
     "rollup": "^1.17.0",
     "rollup-plugin-buble": "^0.19.8",
