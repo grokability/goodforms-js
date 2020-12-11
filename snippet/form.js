@@ -4,6 +4,7 @@ import { is_array, is_function } from "./utils"
 import JSONP from "browser-jsonp"
 
 import { modal, update_hidden_fields} from "./visuals" //commented-out: tooltip
+import { tooltip } from "./tooltip"
 // import { domainToUnicode } from "url"
 // import { stringify } from "querystring"
 
@@ -76,6 +77,7 @@ export default class Form {
         }
         this.initialize_dom()
         this.modal = new modal(this.email_field)
+        this.tooltip = new tooltip(this.email_field) //this is lightweight and doesn't do anything until you actually *show* it
         this.submittable = false
     }
 
@@ -236,12 +238,19 @@ export default class Form {
     }
 
     setError(msg) {
-        if(this.email_field["setCustomValidity"]) {
+        /* if(this.email_field["setCustomValidity"]) {
             this.email_field.setCustomValidity(msg);
             return
-        }
+        } 
         //fallback for ancient browsers that do *NOT* have constraintValidation (IE, possibly others?!)
         this.email_field.setAttribute("data-goodverification-message",msg)
+        */ // this experiment was a total disaster; going back to the olden ways.
+        if(msg != "") {
+            this.tooltip.show(msg)
+        } else {
+            this.tooltip.hide()
+        }
+
         // if(msg != "") {
         //     window.alert(msg)
         // } else {

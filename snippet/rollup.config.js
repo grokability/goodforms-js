@@ -1,5 +1,6 @@
 import buble from 'rollup-plugin-buble'
 import postcss from 'rollup-plugin-postcss'
+// rollup-plugin-html ?
 
 
 const resolve = require('rollup-plugin-node-resolve')

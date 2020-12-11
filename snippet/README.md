@@ -19,9 +19,11 @@ $(function() {Goodverification('form_key');}))
 
 And it should try to attach to any field in your page with a _name_ of `email`, or of type `email`, or an `id` of `email`.
 
-Verifications should fire when a user tabs-off of an email field, or tries to submit it. By default, those verification messages will be
+It will show a pop-up, or not, based on whatever it is you do or whatever
+
+~~Verifications should fire when a user tabs-off of an email field, or tries to submit it. By default, those verification messages will be
 set to the element's status using HTML5 Constraint Validation - e.g. using setCustomValidity(). Additionally, the verification message will
-be set on the data-goodverification-status attribute in the email input field.
+be set on the data-goodverification-status attribute in the email input field.~~
 
 Form submission will be prevented until the email field is marked as Valid.
 

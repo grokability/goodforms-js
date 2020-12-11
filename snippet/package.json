@@ -14,10 +14,11 @@
   "author": "",
   "license": "SEE LICENSE IN LICENSE.TXT",
   "dependencies": {
-    "@popperjs/core": "^2.5.4",
+    "//": "@popperjs/core: ^2.5.4 // NOT YET, let's just use the fully baked thing for now, before we go on a yak-shaving spree",
     "browser-jsonp": "^1.1.5",
     "micromodal": "^0.4.6",
-    "style-inject": "^0.3.0"
+    "style-inject": "^0.3.0",
+    "tippy.js": "^6.2.7"
   },
   "devDependencies": {
     "regenerator-runtime": "^0.13.7",
