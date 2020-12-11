@@ -1,19 +1,6 @@
-/* 
-import { createPopper } from '@popperjs/core/lib/popper-base.js'
 
-import preventOverflow from '@popperjs/core/lib/modifiers/preventOverflow.js';
-import flip from '@popperjs/core/lib/modifiers/flip.js';
-popperOffsets //check
-computeStyles //check
-arrow //only bonus?
-applyStyles //check
-eventListeners //check
-*/
-
-//import { createPopper } from '@popperjs/core';
-import tippy from 'tippy.js'
-import tippy_css from 'tippy.js/dist/tippy.css'
-import styleInject from 'style-inject'
+import tooltip_html from './tooltip.html'
+import styleInject from 'style-inject' //not using this yet but it depends on how the CSS goes. We will want users to be able to override it perhaps?
 
 export class tooltip {
     constructor(email_field) {
@@ -29,41 +16,34 @@ export class tooltip {
 
     // static CssInjected = false //not supported in Buble?
 
-    show(contents) { // FIXME - should be raw HTML or something?
-        // inject CSS *IF IT IS NOT INJECTED ALREADY*
-        if(!tooltip.CssInjected) {
-            styleInject(tippy_css, {insertAt: 'top'})
-            tooltip.CssInjected = true
-        }
-        /* document.body.insertAdjacentHTML('beforeend', 'my html contents')
-        createPopper(reference,tooltip,{
-            modifiers: [
-                {
-                  name: 'offset',
-                  options: {
-                    offset: [0, 8],
-                  },
-                },
-              ],
-            
-        })
-        */
+    show(contents) {
+        // TODO - inject CSS in <head> using styleInject; so end-users can override it. Document those styles, and the properties.
+        document.body.insertAdjacentHTML('beforeend', tooltip_html)
+        this.tooltip = document.body.lastChild
 
-        this.tippy = tippy(this.reference, {
-            content: contents,
-            trigger: 'manual',
-            hideOnClick: false
-        })
-        this.tippy.show()
+        // console.log("Last Child Is:")
+        // console.dir(this.tooltip)
+        this.tooltip.innerHTML = contents
+
+        this.tooltip.style.position = "absolute" //should bake this in to the HTML itself, so long as it works ok?
+        let rect = this.reference.getBoundingClientRect()
+        this.tooltip.style.left = rect.x + window.scrollX
+        this.tooltip.style.top = rect.bottom + window.scrollY
+
+        this.tooltip.style.visibility = "visible"
+        // FIXME - if we have *TWO* errors showing up - perhaps for two email fields - we will need to be able to handle that.
     }
 
     hide() {
-        // let's actually *DELETE* everything here, yeah? why go nuts.
-        // then at least it doesn't mangle their page
-        if(this.tippy) {
-            this.tippy.hide()
-            this.tippy.destroy()
-            this.tippy = null
-        }
+        // TODO - should invoke these styles using a class transition rather than directly manipulating properties
+        this.tooltip.style.backgroundColor = "green"
+        this.tooltip.innerHTML = "valid email" // TODO should come from server - maybe 'msg' parameter?
+        this.tooltip.style.transition = "visibility 0s 2s, opacity 2s linear"
+        this.tooltip.style.opacity = 0
+        this.tooltip.style.visibility = 'hidden'
+        window.setTimeout(function () {
+            this.tooltip.parent.removeChild(this.tooltip)
+            this.tooltip = null
+        },2100)
     }
 }
