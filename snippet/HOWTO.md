@@ -15,4 +15,4 @@ The various versions of the snippet are built in the `dist/` subdirectory
 The production javascript is available at:
 
 - https://cdn.goodforms.com/verify.js (requesting HTTP redirects to HTTPS)
-- https://s3-us-west-2.amazonaws.com/cdn.goodforms.com/verify.js <- TLS, no CDN delay(!)
+- https://s3-us-west-2.amazonaws.com/cdn.goodverification.com/verify.js <- TLS, no CDN delay(!) (note: old name. It's ok.)
