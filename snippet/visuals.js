@@ -18,8 +18,8 @@ let node_creator = function (name, attributes, text) {
 }
 
 export function update_hidden_fields(form, checksum, status) {
-    insert_or_update_hidden('goodverification_checksum','goodverification_checksum',checksum, form)
-    insert_or_update_hidden('goodverification_status','goodverification_status',status, form)
+    insert_or_update_hidden('goodforms_checksum','goodforms_checksum',checksum, form)
+    insert_or_update_hidden('goodforms_status','goodforms_status',status, form)
 }
 
 let insert_or_update_hidden = function (name,id,value, form) {
@@ -108,7 +108,7 @@ export class modal {
 
     hide() {
         if(this.modal) {
-            MicroModal.close('goodverification-modal')
+            MicroModal.close('goodforms-modal')
             //should we dispose of it as well? It could be junking up their DOM I guess?
             // I *think* that this is subsumed by our code to automagically clean up the modal onClose (see display_challenge_modal.onClose)
             //document.body.removeChild(this.modal)
@@ -121,11 +121,11 @@ export class modal {
     }
 
     get_challenge_address() {
-        return document.getElementById('goodverification_challenge_address').value
+        return document.getElementById('goodforms_challenge_address').value
     }
 
     get_pin_code() {
-        return document.getElementById('goodverification_pin').value 
+        return document.getElementById('goodforms_pin').value 
     }
 
     get_modal(challenge_key) { //TODO - this needs breaking up, it's a little rambly
@@ -151,7 +151,7 @@ export class modal {
                 'close_again': 'Close'
             }
             */
-            var modal = node_creator("div", {"id": "goodverification-modal", "aria-hidden":"true", "class": "modal micromodal-slide"})
+            var modal = node_creator("div", {"id": "goodforms-modal", "aria-hidden":"true", "class": "modal micromodal-slide"})
 
             var overlay = node_creator("div", {"tabindex": "-1", "data-micromodal-close": "", "class": "modal__overlay"})
 
@@ -168,7 +168,7 @@ export class modal {
 
             var content = node_creator("div", {"id":"modal-1-content","class": "modal__content"},  this.message+". "+
             "To verify your email address, we need to send you an email. If you agree, re-type your email here: ") // FIXME - hardcoded en-us; should read it from server.
-            var input = node_creator("input", {"type": "text","id": "goodverification_challenge_address"})
+            var input = node_creator("input", {"type": "text","id": "goodforms_challenge_address"})
             content.appendChild(input)
 
             var footer = node_creator("footer", {"class":"modal__footer"})
@@ -192,7 +192,7 @@ export class modal {
 
     display_challenge_modal(challenge_key) {
         this.get_modal(challenge_key)
-        MicroModal.show('goodverification-modal',{
+        MicroModal.show('goodforms-modal',{
             debugMode: true,
             awaitCloseAnimation: true,
             onShow: modal => console.info(`${modal.id} is shown`),
@@ -209,15 +209,15 @@ export class modal {
     }
 
     bad_address() {
-        document.getElementById("modal-1-content").innerHTML = "Email doesn't match field on form! Please retry: <input type='text' id='goodverification_challenge_address'>" //FIXME - don't use innerHTML
+        document.getElementById("modal-1-content").innerHTML = "Email doesn't match field on form! Please retry: <input type='text' id='goodforms_challenge_address'>" //FIXME - don't use innerHTML
     }
 
     pin_input() {
-        document.getElementById("modal-1-content").innerHTML = "Input emailed PIN: <input type='text' id='goodverification_pin' />" // FIXME - don't use innerHTML?
+        document.getElementById("modal-1-content").innerHTML = "Input emailed PIN: <input type='text' id='goodforms_pin' />" // FIXME - don't use innerHTML?
     }
 
     bad_pin() {
-        document.getElementById("modal-1-content").innerHTML = "<span style='color: red'>Invalid PIN entered. Please retry.</span><br>Input emailed PIN: <input type='text' id='goodverification_pin' />" // FIXME - don't use innerHTML?
+        document.getElementById("modal-1-content").innerHTML = "<span style='color: red'>Invalid PIN entered. Please retry.</span><br>Input emailed PIN: <input type='text' id='goodforms_pin' />" // FIXME - don't use innerHTML?
     }
 
 }

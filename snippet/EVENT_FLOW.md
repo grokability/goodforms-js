@@ -2,7 +2,7 @@
 
 Typically `onChange` will fire when the browser detects that a field changed.
 
-If any `onChange` handlers were set _before_ the GoodVerification initializers run, they will be held on to, and invoked later.
+If any `onChange` handlers were set _before_ the GoodForms initializers run, they will be held on to, and invoked later.
 
 The onchange_handler will fire first.
 
@@ -16,7 +16,7 @@ Any of those will "fire hooks".
 
 The first thing that happens, is that if `manual: true` was set during initialization, the function returns and aborts the rest of the event processing stream. `FIXME` - should we do this? (Especially hurts for Challenge)
 
-Then any onChallenge, onGood, onBad callbacks that may have been defined with the initial `Goodverification()` call are invoked.
+Then any onChallenge, onGood, onBad callbacks that may have been defined with the initial `GoodForms()` call are invoked.
 
 If the results are exactly `true` (compared using `===`, so `1` will not be treated the same), then the default behavior will still fire. If they are `false` they will not.
 
