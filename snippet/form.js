@@ -1,6 +1,6 @@
 
 import log from "./logging"
-import { is_array, is_function } from "./utils"
+import { is_array, is_function, duplicate } from "./utils"
 import JSONP from "browser-jsonp"
 
 import { modal, update_hidden_fields} from "./visuals" //commented-out: tooltip
@@ -26,8 +26,12 @@ const options_hash = {
     onBad: "function",
     onChallenge: "function",
     onError: "function",
+    visuals: "booleanOrVisualsObj",
     manual: "boolean"
 } // css" (not yet?)
+
+const visuals_all_on = {good:true, bad:true, challenge:true}
+const visuals_all_off = {good:false, bad:false, challenge:false}
 
 export default class Form {
     constructor(options) {
@@ -75,6 +79,10 @@ export default class Form {
             }
             this.submit_button = submit_buttons
         }
+        if(!this.visuals) {
+            // if no 'visuals' override, default visuals setting is all-on
+            this.visuals = duplicate(visuals_all_on)
+        }
         this.initialize_dom()
         this.modal = new modal(this.email_field)
         this.tooltip = new tooltip(this.email_field) //this is lightweight and doesn't do anything until you actually *show* it
@@ -93,6 +101,30 @@ export default class Form {
 
             case "DOMNodeOrMultipleDOMNodes":
                 return this.unwrap_domnode(name,element,true)
+                break
+
+            case "booleanOrVisualsObj":
+                if(typeof element === "boolean") {
+                    if(element) {
+                        this.visuals = duplicate(visuals_all_on)
+                    } else {
+                        this.visuals = duplicate(visuals_all_off)
+                    }
+                    return true
+                }
+                if(typeof element === "object") {
+                    this.visuals = duplicate(visuals_all_on) //any missing keys should default to 'on' (true)
+                    for(var key in element) {
+                        if(!visuals_all_on[key]) { //if the 'visuals_all_on' constant doesn't have 'true' for this, this thing has unneeded keys
+                            return false
+                        }
+                        this.visuals[key] = element[key]
+                    }
+                    //made it through all of the visual_keys, none were there that we didn't expect.
+                    //now make sure to set default 'true' for anything missed.
+                    return true
+                }
+                return false
                 break
             
             default:
@@ -237,30 +269,6 @@ export default class Form {
         log.error("Unknown type returned from handler '"+name+"' - "+(typeof result))
     }
 
-    setError(msg) {
-        /* if(this.email_field["setCustomValidity"]) {
-            this.email_field.setCustomValidity(msg);
-            return
-        } 
-        //fallback for ancient browsers that do *NOT* have constraintValidation (IE, possibly others?!)
-        this.email_field.setAttribute("data-goodverification-message",msg)
-        */ // this experiment was a total disaster; going back to the olden ways.
-        if(msg != "") {
-            this.tooltip.show(msg)
-        } else {
-            this.tooltip.hide()
-        }
-
-        // if(msg != "") {
-        //     window.alert(msg)
-        // } else {
-        //     //the msg has been set to blank; a/k/a "it's okay now" - what do we do/say? Anything?
-        //     //it *could* make sense to say "okay, your email is OK now!" - but do we want to? I don't know!
-        // }
-    }
-
-    // Event Handler methods
-
     onchange_handler(event) {
         log.debug("ONCHANGE HANDLER TRIGGERED!") // FIXME - this is too noisy
         this.submittable = false //field has changed; not submittable until this returns!
@@ -276,7 +284,9 @@ export default class Form {
     onbad_handler(message) {
         this.fire_hooks('onBad',() => {
             this.submittable = false
-            this.setError(message)
+            if(this.visuals.bad) {
+                this.tooltip.show(message)
+            }
             this.disable_submits()    
         })
     }
@@ -284,7 +294,9 @@ export default class Form {
     ongood_handler(status, checksum, message) {
         this.fire_hooks('onGood',() => {
             this.submittable = true
-            this.setError("") //we need this because it secretly is causing setCustomValidity(), but if we have a 'success message', how do we handle it? FIXME
+            if(this.visuals.good) {
+                this.tooltip.hide()
+            }
             update_hidden_fields(this.form, checksum, status)
             this.enable_submits()
         })
@@ -296,6 +308,9 @@ export default class Form {
             console.warn("inside of the hooks callback") //FIXME
             this.submittable = false
             ///uh....throw up a prompt?
+            if( !this.visuals.challenge ) {
+                return
+            }
             this.modal.show(challenge_key, message, () => {
                 if(this.email_field.value != this.modal.get_challenge_address()) { 
                     log.debug("Field value: "+this.email_field.value+" , challenge_address: "+this.modal.get_challenge_address())
@@ -415,17 +430,16 @@ export default class Form {
     response(email, challenge_key, pin, callback) {
         JSONP({url: HOST+"/response",
             data: {email: email, challenge_key: challenge_key, pin: pin, form_key: this.form_key},
-            success: (data) => {
-                //FIXME - I don't think we handle the actual contents of the 'data' thing
-                //FIXME - see also 'bad_response' in challenge_server - I think that's wrong
-                /* NB - the FIXME below may still hold water! Think about it!!!!
-                if(this.mytooltip) { //FIXME - instead invoke the onchange callback thing?
-                    this.mytooltip.hide()
-                }
-                */
-                this.setError("") //clears error condition
-                this.enable_submits()
+            success: (data) => { //ugh, this 'success' doesn't mean success.
+                // if(data.error) {
+                //     //uhm, yeah? Do, what, exactly?
+                // }
+                // if(this.tooltip) {
+                //     this.tooltip.hide()
+                // }
+                // this.enable_submits()
 
+                // not sure yet - (mental bit-rot) - but I think the above stuff is fully subsumed in firing the ongood_handler()
                 callback(data)
         
             }
