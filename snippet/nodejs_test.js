@@ -1,2 +1,2 @@
 
-var Goodverification = require('./prod-verify.js')
+var Goodforms = require('./prod-verify.js')

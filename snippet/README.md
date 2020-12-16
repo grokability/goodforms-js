@@ -3,18 +3,18 @@
 In your HTML, add:
 
 ```html
-<script src='https://cdn.goodverification.com/goodblah.js'></script>
+<script src='https://cdn.goodforms.com/verify.js'></script>
 ```
 
 Then run, near the bottom of your page:
 
 ```js
-Goodverification('form_key')
+Goodforms('form_key')
 ```
 
 Or, instead of running that at the bottom of the page, you can instead run it in a DOM-ready block. For example, in JQuery, it would look like: 
 ```js
-$(function() {Goodverification('form_key');}))
+$(function() {Goodforms('form_key');}))
 ```
 
 And it should try to attach to any field in your page with a _name_ of `email`, or of type `email`, or an `id` of `email`.
@@ -23,30 +23,30 @@ It will show a pop-up, or not, based on whatever it is you do or whatever
 
 ~~Verifications should fire when a user tabs-off of an email field, or tries to submit it. By default, those verification messages will be
 set to the element's status using HTML5 Constraint Validation - e.g. using setCustomValidity(). Additionally, the verification message will
-be set on the data-goodverification-status attribute in the email input field.~~
+be set on the data-goodforms-status attribute in the email input field.~~
 
 Form submission will be prevented until the email field is marked as Valid.
 
 ## How to use from Require.JS (AMD)
 
 ```js
-require(['https://cdn.goodverification.com/verify.js'], function(Goodverification) {
-    Goodverification('form_key', {debug: true}) //use as normal
+require(['https://cdn.goodforms.com/verify.js'], function(Goodforms) {
+    Goodforms('form_key', {debug: true}) //use as normal
 });
 ```
 
 ## How to use as a Common.JS module
 
-Download the Verification Javascript from https://cdn.goodverification.com/verify.js , rename it to Goodverification, and then:
+Download the Verification Javascript from https://cdn.goodforms.com/verify.js , rename it to Goodforms, and then:
 
 ```js
-var Goodverification = require('./Goodverification')
+var Goodforms = require('./Goodforms')
 ```
 
 ## Debugging
 
 ```js
-Goodverification('form_key', {debug: true})
+Goodforms('form_key', {debug: true})
 ```
 
 # Being more specific
@@ -54,13 +54,13 @@ Goodverification('form_key', {debug: true})
 You still need, somewhere in your page:
 
 ```html
-<script src='https://cdn.goodverification.com/goodblah.js'></script>
+<script src='https://cdn.goodforms.com/verify.js'></script>
 ```
 
 At some point after your form is loaded, you can specifically attach to it by using:
 
 ```js
-Goodverification('form_key', {
+Goodforms('form_key', {
     email_field: document.getElementById('my_email_field'), //you can also send a jQuery-like object - $('#my_email_field') - or just an ID of an element - 'my_email_field'
     form: document.getElementById('my_form'), //usually can be guessed from the email_field, above - but if it can't...
     submit_button: document.getElementById('my_submit_button') 
@@ -75,7 +75,7 @@ The clause may be used repeatedly to attach to multiple different forms.
 You can set particular callbacks to modify verification behavior or override it.
 
 ```js
-Goodverification('form_key', {
+Goodforms('form_key', {
     onGood: function (callback) {},
     onBad: function (callback) {},
     onChallenge: function (callback) {},
@@ -90,7 +90,7 @@ If your functions returns `false`, the default behavior of the form will be over
 If you wish to use promises in your code, do this - 
 
 ```js
-Goodverification('form_key', {
+Goodforms('form_key', {
     onWhatever: function (something,callback) {
         your.stream.of.promises.then(function () {
             //your code here
@@ -103,10 +103,10 @@ Goodverification('form_key', {
 })
 ```
 
-# Using Goodverification programmatically
+# Using Goodforms programmatically
 
 ```js
-var my_verifier = Goodverification('form_key', {manual: true});
+var my_verifier = Goodforms('form_key', {manual: true});
 my_verifier.verify("some_email@some_domain",function (results) {
     console.log("Results are: "+results)
 })
@@ -124,7 +124,7 @@ my_verifier.response("some_email@some_domain", pin, function (results) {
 
 ## Auto-Mode (easier)
 ```js
-Goodverification('form_key');
+Goodforms('form_key');
 ```
 Will automatically find all forms on your page that have an email element, and attempt to verify them. Email elements are:
 
@@ -137,15 +137,15 @@ The associated form, will have any and all submit buttons disabled until the ema
 - an `<input>` with a `type="submit"`
 - a `<button>` with a `type` that is *not* `"button"` nor `"reset"`
 
-The result of the above function will be an array of Goodverification objects (as explained in the section below)
+The result of the above function will be an array of Goodforms objects (as explained in the section below)
 
 If you do not want all forms on your page to be treated this way, or the script cannot find your form or submit button or email field, 
 you need to use the more explicit instantiation, in the section below.
 
 Once the email is considered 'valid', the form will be submitted normally with two additional fields - 
 
-`goodverification_checksum` will be set to a string with the verification checksum.
-`goodverification_status` will be set to the extended 'status' of the email - `valid`, `unknown`, or `catchall`. It is not possible to
+`goodforms_checksum` will be set to a string with the verification checksum.
+`goodforms_status` will be set to the extended 'status' of the email - `valid`, `unknown`, or `catchall`. It is not possible to
 submit an `invalid` email address (that's kinda the point).
 
 You can inspect the checksum to determine whether or not the email was legitimately verified by using the certify API - details in PROTOCOL.md
@@ -153,7 +153,7 @@ You can inspect the checksum to determine whether or not the email was legitimat
 ## Explicit Mode
 
 ```js
-var my_verifier = Goodverification('form_key', {
+var my_verifier = Goodforms('form_key', {
     email_field: document.getElementById('your_email_dom_element'), 
     form: document.getElementById('your form element'),
     submit_button: document.getElementById('your_submit_button'), // you may also pass an ARRAY of submit buttons instead
@@ -187,7 +187,7 @@ FIXME - document CSS overrides you can put in!
 
 ## Manual Mode
 ```js
-var my_verifier = Goodverification('form_key', {
+var my_verifier = Goodforms('form_key', {
     manual: true,
     debug: true, //defaults to false, adds additional debugging output to javascript console
 })
@@ -202,12 +202,12 @@ my_verifier.verify(address, callback (results) {
 
 ## Event Flow
 
-if you set an onSubmit handler in the form, that will fire *first*, before any Goodverification handlers fire. If your handler returns `false`, the Goodverification
+if you set an onSubmit handler in the form, that will fire *first*, before any GoodForms handlers fire. If your handler returns `false`, the GoodForms
 handlers will not be invoked.
 
-If you set an onGood, onBad, etc. handler, those will be fired *before* the Goodverification handlers fire. If your handler returns `false`, the Goodverification
+If you set an onGood, onBad, etc. handler, those will be fired *before* the GoodForms handlers fire. If your handler returns `false`, the GoodForms
 handlers will not be invoked. If you need to do something asynchronously, return a `function()` instead, and that function will be passed a callback to the normal
-Goodverification handling code. If your asynchronous callback is succesful, invoke the callback we passed you. If it is not, simply don't call the callback at all.
+GoodForms handling code. If your asynchronous callback is succesful, invoke the callback we passed you. If it is not, simply don't call the callback at all.
 
 If you invoke a raw `.verify(address, callback)` call, that callback will fire *after* the onGood, onBad, etc. handlers have fired. If you want to interrupt those handlers'
 actions, you should instead attach callbacks to onGood, onBad, etc.
