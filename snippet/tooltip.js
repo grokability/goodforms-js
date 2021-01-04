@@ -42,7 +42,8 @@ export class tooltip {
         if( !this.tooltip ) { //nothing to do; there's no tooltip on display
             return
         }
-        this.tooltip.style.backgroundColor = "green"
+        //this.tooltip.style.backgroundColor = "green"
+        this.tooltip.style.color = "177305"
         this.tooltip.innerHTML = "valid email" // TODO should come from server - maybe 'msg' parameter?
         this.tooltip.style.transition = "visibility 0s 2s, opacity 2s linear"
         this.tooltip.style.opacity = 0
