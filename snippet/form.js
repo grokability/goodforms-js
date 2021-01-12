@@ -19,7 +19,7 @@ const options_hash = {
     form_key:  "string",
     manual: "boolean",
     email_field: "DOMNode",
-    form: "DOMNode",
+    form: "DOMNodeOrBoolean",
     submit_button: "DOMNodeOrArrayOfDOMNodes",
     debug: "boolean",
     onGood: "function",
@@ -57,16 +57,16 @@ export default class Form {
         if(!this.email_field) {
             return log.error("No Email Field set!")
         }
-        if(!this.form) {
+        if(typeof this.form == "undefined" || this.form === true ) { // 'true' is just an explicit way of saying 'automatically figure out what form this lives in'
             log.debug("Trying to guess Form value")
             //try and guess form from email field's 'form' property
             this.form = this.email_field.form
             log.debug("Picked: "+this.form)
         }
-        if(!this.form) { //TODO - allow 'false' here (not null/undefined?) to permit no-form?
+        if(!this.form && this.form !== false) { // 'false' means "don't mess with the form, or maybe there isn't one"
             return log.error("Could not determine Form!")
         }
-        if(!this.submit_button && this.submit_button !== false) { //'false' means "don't disable submit buttons"
+        if(this.form && !this.submit_button && this.submit_button !== false) { //'false' means "don't disable submit buttons"
             log.debug("Trying to find submit buttons...")
             let submit_buttons=[]
             for(let i=0; i< this.form.elements.length; i++) {
@@ -125,6 +125,15 @@ export default class Form {
                     return true
                 }
                 return false
+                break
+
+            case "DOMNodeOrBoolean":
+                if(typeof element === "boolean") {
+                    this[name] = element
+                    return true
+                } else {
+                    return this.unwrap_domnode(name,element,false)
+                }
                 break
             
             default:
@@ -186,7 +195,7 @@ export default class Form {
             this[name] = element
             return true
         }
-        log.error("Unknown element type passed for "+name+": "+typeof(element)+", and its prototype is: "+element.prototype+", and its source: "+element.prototype.toSource())
+        log.debug("Unknown element type passed for "+name+": "+typeof(element)+", and its prototype is: "+(element['prototype'] ? element.prototype : '<unknown>')+", and its source: "+(element && element['prototype'] && element['prototype']['toSource'] ? element.prototype.toSource() : '<unavailable>'))
         return false
     }
 
@@ -297,8 +306,10 @@ export default class Form {
             if(this.visuals.good) {
                 this.tooltip.hide()
             }
-            update_hidden_fields(this.form, checksum, status)
-            this.enable_submits()
+            if(this.form) {
+                update_hidden_fields(this.form, checksum, status)
+                this.enable_submits()
+            }
         })
     }
 
@@ -366,7 +377,7 @@ export default class Form {
         if(this.email_field.value !== this.verifying) {
             log.debug("sending new verification!")
             this.verify(this.email_field.value, (results) => {  //FIXME - this could double-verify!
-                if(this.submittable) { //don't directly inspect 'results', assume the onBlah handlers will update 'submittable'
+                if(this.submittable && this.form) { //don't directly inspect 'results', assume the onBlah handlers will update 'submittable'
                     this.form.submit()
                 }
             })
