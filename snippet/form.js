@@ -218,7 +218,7 @@ export default class Form {
                 log.debug("On Submit handler firing!")
                 var results
                 if(old_onsubmit) {
-                    results = old_onsubmit(event) //FIXME - confusing, *their* old onsubmit handler fires *first*?
+                    results = old_onsubmit(event) //TODO - confusing, *their* old onsubmit handler fires *first*?
                 }                                   // Well, it could make sense - if you wanted to do something to interrupt the verification, you could?
                 if(!old_onsubmit || results) {
                     return this.onsubmit_handler(event)
@@ -252,34 +252,51 @@ export default class Form {
         }
     }
 
-    // Event-management/hook-management helper method
+    // Event-management/hook-management helper methods
 
-    fire_hooks(name, callback) {
+    parse_event_handler_results(result, behavior, visuals, allow_func) {
+        if(typeof(result) === "undefined") { // undefined (or nothing returned), do default *everything*
+            //do default VISUALS, *AND* default BEHAVIOR!
+            behavior()
+            visuals()
+            return 
+        } else if(result === false) { //NEGATIVE RESULT from pre-callback - do *NOT* invoke callback!
+            // NO VISUALS. NO BEHAVIOR!
+            return true
+        } else if(result === true) { //TRUE RESULT  - continue normal behavior, but skip visuals
+            return behavior()
+        } else if(is_function(result)) {
+            if(allow_func) { //function allowed, invoke callback with appropriate parameters
+                return result((nested_function_result) => {
+                    return this.parse_event_handler_results(nested_function_result, behavior, visuals, false)
+                }) 
+            } else {
+                log.error("Function type returned when function is not allowed.") //can't say *which* one tho TODO
+                // raise? throw? TODO
+            }
+        } else {
+            log.error("Unknown type returned from handler '"+(typeof result)+"'") //TODO would be nice to have *which* handler we've got an unknown type from
+            // should we 'throw()' or something here? Great question.
+        }
+    }
+
+    fire_hooks(name, behavior, visuals) {
         log.debug("Firing hooks for: "+name)
-        if(this.manual) { //FIXME! Do I want to do this? TODO? (makes onChallenge very HARD!)
-            console.warn("NOT firing hooks and stuff cuz manual mode!!!!") //FIXME!
-            // return // FIXME - am I doing this or not?!
-        }
-
-        if(!this[name]) {
-            //no hooks; go ahead and do the default stuff from 'callback'
-            return callback()
-        }
-        let result = this[name]()
-        if(result === false) { //NEGATIVE RESULT from pre-callback - do *NOT* invoke callback!
+        if(this.manual) {
             return
         }
-        if(result === true || typeof(result) == "undefined") { //TRUE RESULT (or nothing returned) - continue normal behavior
-            return callback()
+
+        if(!this[name]) { // side-note, if we want to get super-froggy here we can set a 'default callback' of () => {} then everything runs like normal?
+            //no hooks; go ahead and do the default stuff from 'callback'
+            behavior()
+            visuals()
+            return
         }
-        if(is_function(result)) {
-            return result(callback) //deferred...
-        }
-        log.error("Unknown type returned from handler '"+name+"' - "+(typeof result))
+        let tmp = this[name]()
+        return this.parse_event_handler_results(this[name](), behavior, visuals, true) // TODO - should I be doing this? //TODO these returns are BS.
     }
 
     onchange_handler(event) {
-        log.debug("ONCHANGE HANDLER TRIGGERED!") // FIXME - this is too noisy
         this.submittable = false //field has changed; not submittable until this returns!
         this.verifying = this.email_field.value
         //FIXME - should we set an 'in-flight' variable, so we know not to double-verify?
@@ -291,33 +308,38 @@ export default class Form {
     }
 
     onbad_handler(message) {
-        this.fire_hooks('onBad',() => {
+        this.fire_hooks('onBad', () => {
             this.submittable = false
+            this.disable_submits()    
+        }, 
+        () => {
             if(this.visuals.bad) {
                 this.tooltip.show(message)
             }
-            this.disable_submits()    
         })
     }
 
     ongood_handler(status, checksum, message) {
-        this.fire_hooks('onGood',() => {
+        this.fire_hooks('onGood', () => {
             this.submittable = true
-            if(this.visuals.good) {
-                this.tooltip.hide()
-            }
             if(this.form) {
                 update_hidden_fields(this.form, checksum, status)
                 this.enable_submits()
             }
+        },
+        () => {
+            if(this.visuals.good) {
+                this.tooltip.hide()
+            }    
         })
     }
 
     onchallenge_handler(challenge_key, message) {
-        console.warn("low-level challenge handler invoked?") //FIXME debug
-        this.fire_hooks('onChallenge',() => {
-            console.warn("inside of the hooks callback") //FIXME
-            this.submittable = false
+        this.fire_hooks('onChallenge', () => {
+            this.submittable = false;
+            this.disable_submits();
+        },
+        () => {
             ///uh....throw up a prompt?
             if( !this.visuals.challenge ) {
                 return
@@ -358,9 +380,9 @@ export default class Form {
                 })
             })
         })
-    }
+    } 
 
-    onerror_handler() {
+     onerror_handler() {
         this.fire_hooks('onError',() => {
             log.debug("Error detected?")
         })
@@ -407,7 +429,6 @@ export default class Form {
                     break
     
                     case "CHALLENGE":
-                    console.warn("CHALLENGE LEG INVOKING!") //FIXME !!!
                     this.onchallenge_handler(data.challenge_key, data.message)
                     break
     

@@ -26,15 +26,12 @@ export class tooltip {
         this.tooltip.innerHTML = contents
 
         this.tooltip.style.position = "absolute" //should bake this in to the HTML itself, so long as it works ok?
-        console.dir(this.reference)
         let rect = this.reference.getBoundingClientRect()
-        console.dir(rect)
-        console.log("ScrollX and Y are: "+window.scrollX+","+window.scrollY)
-        this.tooltip.style.left = (rect.x + window.scrollX) + "px" //pageXOffset FIXME - need the offset versions here for IE compat?
-        this.tooltip.style.top = (rect.bottom + window.scrollY) + "px" //pageYOffset FIXME - same
+        this.tooltip.style.left = (rect.x + window.scrollX) + "px" //pageXOffset TODO - need the offset versions here for IE compat?
+        this.tooltip.style.top = (rect.bottom + window.scrollY) + "px" //pageYOffset TODO - same
 
         this.tooltip.style.visibility = "visible"
-        // FIXME - if we have *TWO* errors showing up - perhaps for two email fields - we will need to be able to handle that.
+        // TODO - if we have *TWO* errors showing up - perhaps for two email fields - we will need to be able to handle that.
     }
 
     hide() {

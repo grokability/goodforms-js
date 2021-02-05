@@ -132,8 +132,8 @@ export class modal {
         log.debug("Getting modal - challenge key is: "+challenge_key)
         if(!this.modal) {
 
-            //FIXME prolly need to rename all of these classes to something unique
-            //FIXME will need to update the CSS accordingly as well.
+            //TODO prolly need to rename all of these classes to something unique
+            //TODO will need to update the CSS accordingly as well.
             /*
             There are a few bits of English here, that we need to replace. My initial instinct is to expand `message` (this.message)
             into a more complex blob of text - something like:
@@ -151,6 +151,14 @@ export class modal {
                 'close_again': 'Close'
             }
             */
+
+            /*
+            Honestly, I think what I would prefer is that we load up an iframe from the server, that would make a lot of sense.
+            1) We can stop fucking around with the DOM so much.
+            2) It becomes trivial to internationalize
+            3) It can lead us to 'click a link' verification if we decide to do it (we may not; users are conditioned to *NOT* click on links!)
+            
+            */
             var modal = node_creator("div", {"id": "goodforms-modal", "aria-hidden":"true", "class": "modal micromodal-slide"})
 
             var overlay = node_creator("div", {"tabindex": "-1", "data-micromodal-close": "", "class": "modal__overlay"})
@@ -167,7 +175,7 @@ export class modal {
             header.appendChild(close_button)
 
             var content = node_creator("div", {"id":"modal-1-content","class": "modal__content"},  this.message+". "+
-            "To verify your email address, we need to send you an email. If you agree, re-type your email here: ") // FIXME - hardcoded en-us; should read it from server.
+            "To verify your email address, we need to send you an email. If you agree, re-type your email here: ") // TODO - hardcoded en-us; should read it from server.
             var input = node_creator("input", {"type": "text","id": "goodforms_challenge_address"})
             content.appendChild(input)
 
@@ -175,7 +183,7 @@ export class modal {
             var button = node_creator("button", {"class":"modal__btn modal__btn-primary"},"Continue")
             this.button = button //to make it easier to attach an onclick handler
             footer.appendChild(button)
-            footer.appendChild(node_creator("button",{"class": "modal__btn","data-micromodal-close": "","aria-label":"Close this dialog window"},"Close")) //FIXME - internationalize!
+            footer.appendChild(node_creator("button",{"class": "modal__btn","data-micromodal-close": "","aria-label":"Close this dialog window"},"Close")) //TODO - internationalize!
 
             container.appendChild(header)
             container.appendChild(content)
@@ -195,29 +203,29 @@ export class modal {
         MicroModal.show('goodforms-modal',{
             debugMode: true,
             awaitCloseAnimation: true,
-            onShow: modal => console.info(`${modal.id} is shown`),
+            onShow: modal => log.info(`${modal.id} is shown`),
             onClose: modal => {
-                console.info(`${modal.id} is hidden`)
+                log.info(`${modal.id} is hidden`)
                 if(this.modal) {
                     document.body.removeChild(this.modal)
                     delete this.modal
                 } else {
-                    console.info("Wait, what?! this.modal is null (or false, or something?!)")
+                    log.info("Modal's onClose method is invoked and yet 'this.modal' doesn't seem to exist? Ignoring...")
                 }
             }
         })
     }
 
     bad_address() {
-        document.getElementById("modal-1-content").innerHTML = "Email doesn't match field on form! Please retry: <input type='text' id='goodforms_challenge_address'>" //FIXME - don't use innerHTML
+        document.getElementById("modal-1-content").innerHTML = "Email doesn't match field on form! Please retry: <input type='text' id='goodforms_challenge_address'>" //TODO - don't use innerHTML
     }
 
     pin_input() {
-        document.getElementById("modal-1-content").innerHTML = "Input emailed PIN: <input type='text' id='goodforms_pin' />" // FIXME - don't use innerHTML?
+        document.getElementById("modal-1-content").innerHTML = "Input emailed PIN: <input type='text' id='goodforms_pin' />" // TODO - don't use innerHTML?
     }
 
     bad_pin() {
-        document.getElementById("modal-1-content").innerHTML = "<span style='color: red'>Invalid PIN entered. Please retry.</span><br>Input emailed PIN: <input type='text' id='goodforms_pin' />" // FIXME - don't use innerHTML?
+        document.getElementById("modal-1-content").innerHTML = "<span style='color: red'>Invalid PIN entered. Please retry.</span><br>Input emailed PIN: <input type='text' id='goodforms_pin' />" // TODO - don't use innerHTML?
     }
 
 }

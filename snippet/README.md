@@ -164,7 +164,7 @@ var my_verifier = Goodforms('form_key', {
     onError: function () {},
     manual: true, //if set, NONE of the standard behavior will ever be invoked. Verification can only be invoked manually. See below.
     css: false, // FIXME - not yet implemented (and not sure if we should!)
-}) //FIXME - should ensure that if you pass anything unexpected, it errors and doesn't silently accept it. Will reduce support.
+})
 ```
 Please note that in order to attach to multiple forms, the function must be invoked once per email address field.
 
@@ -172,14 +172,38 @@ If you do not wish for your submit buttons to be affected, you may set `submit_b
 
 The callback functions will fire *before* the default behaviors of the script are invoked.
 
-If the script returns *EXACTLY* `true`, those behaviors will still fire normally. It must not return `1` or anything else that may evaluate to true in Javascript; it needs to explicitly be `true`.
+If the script doesn't *EXPLICITLY* `return` at all, or just uses a bare `return` with no return value, you will get the default **visuals** and the default **behavior**
 
-If the script returns `false`, those behaviors will be cancelled. It must not return `0` or `""` or `null` or anything else; it needs to be explicitly `false`.
+If the script returns *EXACTLY* `true`, those behaviors will still fire normally, but you have to do your visuals yourself. It must not return `1` or anything else that may evaluate to true in Javascript; it needs to explicitly be `true`.
 
-If the script instead returns a function, that function will be invoked with a callback. If that function fires the callback, the normal behaviors
-will be triggered at that time. To prevent those behaviors, simply do not execute the callback.
+If the script returns `false`, those behaviors will be cancelled, and there will be no default visuals (of course). It must not return `0` or `""` or `null` or anything else; it needs to be explicitly `false`.
+
+If the script instead returns a function, that function will be invoked with a callback as its first parameter. When that function fires the callback, the normal behaviors
+will be triggered at that time, based on return values?!?!?!. ~~To prevent those behaviors, simply do not execute the callback.~~ An example might be:
+
+```js
+{
+    onGood: function () {
+        return function (callback) {
+            //do something that takes a while, but eventually.....
+            return callback(); // default behavior, default visuals
+            // or
+            return callback(true); //user-handled visuals, default behavior
+            // or 
+            return callback(false); //user-handled visuals, canceled behavior
+        }
+    }
+}
 
 Any other returned types from the functions will be considered an error.
+
+
+### Summary of on{Good,Bad,Challenge} handlers:
+
+ - | Default Behavior | Cancel Defaults |
+---|--------------|-----------|
+Default visuals |  `return` | NOT SUPPORTED (use manual mode) |
+User-handled visuals |  `return true` | `return false`
 
 ## Custom styles
 

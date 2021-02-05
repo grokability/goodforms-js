@@ -16,7 +16,7 @@ export default function (form_key,options) {
         my_options={form_key: form_key}
     }
     if(my_options.debug) {
-        log.debug_enabled = my_options.debug //FIXME this is already handled in index.js, this is superfluous
+        log.debug_enabled = my_options.debug //TODO this is already handled in index.js, this is superfluous
         delete my_options.debug //don't want to keep passing this down to each Verify
     }
     let activated_forms=[]
