@@ -20,6 +20,6 @@ Then any onChallenge, onGood, onBad callbacks that may have been defined with th
 
 If the results are exactly `true` (compared using `===`, so `1` will not be treated the same), then the default behavior will still fire. If they are `false` they will not.
 
-If, however, your callback returns a function, then that function will be invoked, with a callback. If your function eventually wants the 'positive' result to fire, it should invoke the callback. otherwise, it ought not to (I guess?). `// FIXME` - should the callback with true/false?
+If, however, your callback returns a function, then that function will be invoked, with a callback. The callback should be invoked with the same return types: true, false, or undefined, and will behave the same as if they were returned synchronously.
 
 `//FIXME` - if you're doing _manual_ verification, should we short-circuit the default behavior? Should we instead do `form: false` or something? I want the `onChallenge` to still fire, for example, on the thing I'm working on for jqueryvalidation.

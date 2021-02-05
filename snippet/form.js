@@ -19,7 +19,7 @@ const options_hash = {
     form_key:  "string",
     manual: "boolean",
     email_field: "DOMNode",
-    form: "DOMNode",
+    form: "DOMNodeOrBoolean",
     submit_button: "DOMNodeOrArrayOfDOMNodes",
     debug: "boolean",
     onGood: "function",
@@ -57,16 +57,16 @@ export default class Form {
         if(!this.email_field) {
             return log.error("No Email Field set!")
         }
-        if(!this.form) {
+        if(typeof this.form == "undefined" || this.form === true ) { // 'true' is just an explicit way of saying 'automatically figure out what form this lives in'
             log.debug("Trying to guess Form value")
             //try and guess form from email field's 'form' property
             this.form = this.email_field.form
             log.debug("Picked: "+this.form)
         }
-        if(!this.form) { //TODO - allow 'false' here (not null/undefined?) to permit no-form?
+        if(!this.form && this.form !== false) { // 'false' means "don't mess with the form, or maybe there isn't one"
             return log.error("Could not determine Form!")
         }
-        if(!this.submit_button && this.submit_button !== false) { //'false' means "don't disable submit buttons"
+        if(this.form && !this.submit_button && this.submit_button !== false) { //'false' means "don't disable submit buttons"
             log.debug("Trying to find submit buttons...")
             let submit_buttons=[]
             for(let i=0; i< this.form.elements.length; i++) {
@@ -125,6 +125,15 @@ export default class Form {
                     return true
                 }
                 return false
+                break
+
+            case "DOMNodeOrBoolean":
+                if(typeof element === "boolean") {
+                    this[name] = element
+                    return true
+                } else {
+                    return this.unwrap_domnode(name,element,false)
+                }
                 break
             
             default:
@@ -186,7 +195,7 @@ export default class Form {
             this[name] = element
             return true
         }
-        log.error("Unknown element type passed for "+name+": "+typeof(element)+", and its prototype is: "+element.prototype+", and its source: "+element.prototype.toSource())
+        log.debug("Unknown element type passed for "+name+": "+typeof(element)+", and its prototype is: "+(element['prototype'] ? element.prototype : '<unknown>')+", and its source: "+(element && element['prototype'] && element['prototype']['toSource'] ? element.prototype.toSource() : '<unavailable>'))
         return false
     }
 
@@ -209,7 +218,7 @@ export default class Form {
                 log.debug("On Submit handler firing!")
                 var results
                 if(old_onsubmit) {
-                    results = old_onsubmit(event) //FIXME - confusing, *their* old onsubmit handler fires *first*?
+                    results = old_onsubmit(event) //TODO - confusing, *their* old onsubmit handler fires *first*?
                 }                                   // Well, it could make sense - if you wanted to do something to interrupt the verification, you could?
                 if(!old_onsubmit || results) {
                     return this.onsubmit_handler(event)
@@ -243,34 +252,51 @@ export default class Form {
         }
     }
 
-    // Event-management/hook-management helper method
+    // Event-management/hook-management helper methods
 
-    fire_hooks(name, callback) {
+    parse_event_handler_results(result, behavior, visuals, allow_func) {
+        if(typeof(result) === "undefined") { // undefined (or nothing returned), do default *everything*
+            //do default VISUALS, *AND* default BEHAVIOR!
+            behavior()
+            visuals()
+            return 
+        } else if(result === false) { //NEGATIVE RESULT from pre-callback - do *NOT* invoke callback!
+            // NO VISUALS. NO BEHAVIOR!
+            return true
+        } else if(result === true) { //TRUE RESULT  - continue normal behavior, but skip visuals
+            return behavior()
+        } else if(is_function(result)) {
+            if(allow_func) { //function allowed, invoke callback with appropriate parameters
+                return result((nested_function_result) => {
+                    return this.parse_event_handler_results(nested_function_result, behavior, visuals, false)
+                }) 
+            } else {
+                log.error("Function type returned when function is not allowed.") //can't say *which* one tho TODO
+                // raise? throw? TODO
+            }
+        } else {
+            log.error("Unknown type returned from handler '"+(typeof result)+"'") //TODO would be nice to have *which* handler we've got an unknown type from
+            // should we 'throw()' or something here? Great question.
+        }
+    }
+
+    fire_hooks(name, behavior, visuals) {
         log.debug("Firing hooks for: "+name)
-        if(this.manual) { //FIXME! Do I want to do this? TODO? (makes onChallenge very HARD!)
-            console.warn("NOT firing hooks and stuff cuz manual mode!!!!") //FIXME!
-            // return // FIXME - am I doing this or not?!
-        }
-
-        if(!this[name]) {
-            //no hooks; go ahead and do the default stuff from 'callback'
-            return callback()
-        }
-        let result = this[name]()
-        if(result === false) { //NEGATIVE RESULT from pre-callback - do *NOT* invoke callback!
+        if(this.manual) {
             return
         }
-        if(result === true || typeof(result) == "undefined") { //TRUE RESULT (or nothing returned) - continue normal behavior
-            return callback()
+
+        if(!this[name]) { // side-note, if we want to get super-froggy here we can set a 'default callback' of () => {} then everything runs like normal?
+            //no hooks; go ahead and do the default stuff from 'callback'
+            behavior()
+            visuals()
+            return
         }
-        if(is_function(result)) {
-            return result(callback) //deferred...
-        }
-        log.error("Unknown type returned from handler '"+name+"' - "+(typeof result))
+        let tmp = this[name]()
+        return this.parse_event_handler_results(this[name](), behavior, visuals, true) // TODO - should I be doing this? //TODO these returns are BS.
     }
 
     onchange_handler(event) {
-        log.debug("ONCHANGE HANDLER TRIGGERED!") // FIXME - this is too noisy
         this.submittable = false //field has changed; not submittable until this returns!
         this.verifying = this.email_field.value
         //FIXME - should we set an 'in-flight' variable, so we know not to double-verify?
@@ -282,31 +308,38 @@ export default class Form {
     }
 
     onbad_handler(message) {
-        this.fire_hooks('onBad',() => {
+        this.fire_hooks('onBad', () => {
             this.submittable = false
+            this.disable_submits()    
+        }, 
+        () => {
             if(this.visuals.bad) {
                 this.tooltip.show(message)
             }
-            this.disable_submits()    
         })
     }
 
     ongood_handler(status, checksum, message) {
-        this.fire_hooks('onGood',() => {
+        this.fire_hooks('onGood', () => {
             this.submittable = true
+            if(this.form) {
+                update_hidden_fields(this.form, checksum, status)
+                this.enable_submits()
+            }
+        },
+        () => {
             if(this.visuals.good) {
                 this.tooltip.hide()
-            }
-            update_hidden_fields(this.form, checksum, status)
-            this.enable_submits()
+            }    
         })
     }
 
     onchallenge_handler(challenge_key, message) {
-        console.warn("low-level challenge handler invoked?") //FIXME debug
-        this.fire_hooks('onChallenge',() => {
-            console.warn("inside of the hooks callback") //FIXME
-            this.submittable = false
+        this.fire_hooks('onChallenge', () => {
+            this.submittable = false;
+            this.disable_submits();
+        },
+        () => {
             ///uh....throw up a prompt?
             if( !this.visuals.challenge ) {
                 return
@@ -347,9 +380,9 @@ export default class Form {
                 })
             })
         })
-    }
+    } 
 
-    onerror_handler() {
+     onerror_handler() {
         this.fire_hooks('onError',() => {
             log.debug("Error detected?")
         })
@@ -366,7 +399,7 @@ export default class Form {
         if(this.email_field.value !== this.verifying) {
             log.debug("sending new verification!")
             this.verify(this.email_field.value, (results) => {  //FIXME - this could double-verify!
-                if(this.submittable) { //don't directly inspect 'results', assume the onBlah handlers will update 'submittable'
+                if(this.submittable && this.form) { //don't directly inspect 'results', assume the onBlah handlers will update 'submittable'
                     this.form.submit()
                 }
             })
@@ -396,7 +429,6 @@ export default class Form {
                     break
     
                     case "CHALLENGE":
-                    console.warn("CHALLENGE LEG INVOKING!") //FIXME !!!
                     this.onchallenge_handler(data.challenge_key, data.message)
                     break
     

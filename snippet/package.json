@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "watch": "SERVERIP=$(ifconfig en0|grep 'inet '|cut -d ' ' -f 2); echo \"SERVERIP IS: $SERVERIP\"; rollup -c --watch --environment SNIPPET_ENV:dev --environment SERVERIP:$SERVERIP",
     "compress": "uglifyjs --source-map -o dist/dev-verify.min.js dist/dev-verify.js",
-    "production": "SERVERNAME=https://api.goodforms.com rollup -c --environment SNIPPET_ENV:production && uglifyjs --source-map -o dist/verify.js dist/prod-verify.js",
+    "production": "SERVERNAME=https://api.goodforms.com rollup -c --environment SNIPPET_ENV:production && uglifyjs --source-map \"url='https://cdn.goodforms.com/verify.js.map',content=inline\" -o dist/verify.js dist/prod-verify.js",
     "publish": "aws --profile bespin s3 cp dist/ s3://cdn.goodverification.com/ --recursive --exclude '*' --include 'verify.js*'",
     "purge": "aws --profile bespin cloudfront create-invalidation --distribution-id ENRJKUI04P9HN --paths '/*'"
   },
