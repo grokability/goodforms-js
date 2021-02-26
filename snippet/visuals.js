@@ -203,14 +203,14 @@ export class modal {
         MicroModal.show('goodforms-modal',{
             debugMode: true,
             awaitCloseAnimation: true,
-            onShow: modal => log.info(`${modal.id} is shown`),
+            onShow: modal => log.debug(`${modal.id} is shown`),
             onClose: modal => {
-                log.info(`${modal.id} is hidden`)
+                log.debug(`${modal.id} is hidden`)
                 if(this.modal) {
                     document.body.removeChild(this.modal)
                     delete this.modal
                 } else {
-                    log.info("Modal's onClose method is invoked and yet 'this.modal' doesn't seem to exist? Ignoring...")
+                    log.debug("Modal's onClose method is invoked and yet 'this.modal' doesn't seem to exist? Ignoring...")
                 }
             }
         })
