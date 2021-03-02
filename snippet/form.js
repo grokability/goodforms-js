@@ -293,7 +293,7 @@ export default class Form {
             return
         }
         let tmp = this[name]()
-        return this.parse_event_handler_results(this[name](), behavior, visuals, true) // TODO - should I be doing this? //TODO these returns are BS.
+        return this.parse_event_handler_results(tmp, behavior, visuals, true)
     }
 
     onchange_handler(event) {
