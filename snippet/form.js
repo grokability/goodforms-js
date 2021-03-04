@@ -26,8 +26,9 @@ const options_hash = {
     onBad: "function",
     onChallenge: "function",
     onError: "function",
-    visuals: "booleanOrVisualsObj",
-    manual: "boolean"
+    visuals: "booleanOrVisualsObj", // this may be deprecated?
+    manual: "boolean",
+    timeout: "number"
 } // css" (not yet?)
 
 const visuals_all_on = {good:true, bad:true, challenge:true}
@@ -48,6 +49,11 @@ export default class Form {
         }
         if(!this.form_key) {
             return log.error("No Form Key set!")
+        }
+        if(!this.timeout) {
+            this.timeout = 10000
+        } else {
+            this.timeout = 1000 * this.timeout //timeout was in seconds, but window.setTimeout() is in milliseconds
         }
         if(this.manual) {
             //bail out of the rest of setup for manual-mode
@@ -385,6 +391,11 @@ export default class Form {
      onerror_handler() {
         this.fire_hooks('onError',() => {
             log.debug("Error detected?")
+            this.tooltip.remove()
+            this.submittable = true
+            this.enable_submits()
+        },() => {
+            log.debug("No default visuals for error?")
         })
     }
 
@@ -411,11 +422,34 @@ export default class Form {
     // but also, helpers that *we* use - so should they be invoking our callbacks for us?
     // maybe yes only if manual is false?
 
+    jsp(url, data, success) {
+        data.form_key = this.form_key //this mutates the source; but we don't care for our purposes
+        let timed_out = false
+        let to = window.setTimeout(() => {
+            timed_out = true
+            this.onerror_handler(new Error("Timeout"))
+        }, this.timeout)
+        JSONP({
+            url: HOST+'/'+url,
+            data: data,
+            success: (data) => {
+                if(timed_out) { //prevent success handler from firing *after* a timeout had already fired
+                    return
+                }
+                window.clearTimeout(to)
+                return success(data)
+            },
+            error: (err) => {
+                window.clearTimeout(to)
+                this.onerror_handler(err)
+            }
+        })
+    }
+
     verify(email, callback) {
         log.debug("VERIFY low-level method invoked!")
-        JSONP({url: HOST+"/verify",
-            data: {email: email, form_key: this.form_key}, 
-            success: (data) => {
+        this.jsp("verify", {email: email}, 
+            (data) => {
                 if(data.error) {
                     log.error(data.error)
                 }
@@ -443,26 +477,26 @@ export default class Form {
                     callback(data)
                 }
             }
-        })
+        )
     }
 
     challenge(email, challenge_key, callback) {
-        JSONP({url: HOST+"/challenge",
-            data: {email: email, form_key: this.form_key, challenge_key: challenge_key},
-            success: (data) => {
+        this.jsp("challenge",
+            {email: email, challenge_key: challenge_key},
+            (data) => {
                 callback(data)
                 // switch(data.status) {
                 //     case "GOOD":
 
                 // }
             }
-        })
+        )
     }
 
     response(email, challenge_key, pin, callback) {
-        JSONP({url: HOST+"/response",
-            data: {email: email, challenge_key: challenge_key, pin: pin, form_key: this.form_key},
-            success: (data) => { //ugh, this 'success' doesn't mean success.
+        this.jsp("response",
+            {email: email, challenge_key: challenge_key, pin: pin},
+            (data) => { //ugh, this 'success' doesn't mean success.
                 // if(data.error) {
                 //     //uhm, yeah? Do, what, exactly?
                 // }
@@ -475,6 +509,6 @@ export default class Form {
                 callback(data)
         
             }
-        })
+        )
     }
 }
