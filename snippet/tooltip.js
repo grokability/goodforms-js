@@ -48,8 +48,15 @@ export class tooltip {
         window.setTimeout( () => {
             // console.log("I am deleting myself, I am: ")
             // console.dir(this.tooltip)
-            this.tooltip.parentNode.removeChild(this.tooltip) //it's saying it *has* no parent?
-            this.tooltip = null
+            this.remove()
         }, 2100)
+    }
+
+    remove() {
+        if (!this.tooltip) {
+            return
+        }
+        this.tooltip.parentNode.removeChild(this.tooltip) //it's saying it *has* no parent?
+        this.tooltip = null
     }
 }
