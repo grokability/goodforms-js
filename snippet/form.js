@@ -260,21 +260,21 @@ export default class Form {
 
     // Event-management/hook-management helper methods
 
-    parse_event_handler_results(result, behavior, visuals, allow_func) {
+    parse_event_handler_results(result, behavior, visuals, allow_func, params) {
         if(typeof(result) === "undefined") { // undefined (or nothing returned), do default *everything*
             //do default VISUALS, *AND* default BEHAVIOR!
-            behavior()
-            visuals()
+            behavior(...params)
+            visuals(...params)
             return 
         } else if(result === false) { //NEGATIVE RESULT from pre-callback - do *NOT* invoke callback!
             // NO VISUALS. NO BEHAVIOR!
             return true
         } else if(result === true) { //TRUE RESULT  - continue normal behavior, but skip visuals
-            return behavior()
+            return behavior(...params)
         } else if(is_function(result)) {
             if(allow_func) { //function allowed, invoke callback with appropriate parameters
                 return result((nested_function_result) => {
-                    return this.parse_event_handler_results(nested_function_result, behavior, visuals, false)
+                    return this.parse_event_handler_results(nested_function_result, behavior, visuals, false, params)
                 }) 
             } else {
                 log.error("Function type returned when function is not allowed.") //can't say *which* one tho TODO
@@ -286,7 +286,7 @@ export default class Form {
         }
     }
 
-    fire_hooks(name, behavior, visuals) {
+    fire_hooks(name, behavior, visuals, ...params) {
         log.debug("Firing hooks for: "+name)
         if(this.manual) {
             return
@@ -294,15 +294,15 @@ export default class Form {
 
         if(!this[name]) { // side-note, if we want to get super-froggy here we can set a 'default callback' of () => {} then everything runs like normal?
             //no hooks; go ahead and do the default stuff from 'callback'
-            behavior()
-            visuals()
+            behavior(...params)
+            visuals(...params)
             return
         }
-        let tmp = this[name]()
-        return this.parse_event_handler_results(tmp, behavior, visuals, true)
+        let tmp = this[name](...params)
+        return this.parse_event_handler_results(tmp, behavior, visuals, true, params)
     }
 
-    onchange_handler(event) {
+    onchange_handler() {
         this.submittable = false //field has changed; not submittable until this returns!
         this.verifying = this.email_field.value
         //FIXME - should we set an 'in-flight' variable, so we know not to double-verify?
@@ -313,7 +313,7 @@ export default class Form {
         })
     }
 
-    onbad_handler(message) {
+    onbad_handler(detailed_status, message) {
         this.fire_hooks('onBad', () => {
             this.submittable = false
             this.disable_submits()    
@@ -322,10 +322,12 @@ export default class Form {
             if(this.visuals.bad) {
                 this.tooltip.show(message)
             }
-        })
+        },
+        detailed_status,
+        message)
     }
 
-    ongood_handler(status, checksum, message) {
+    ongood_handler(detailed_status, checksum, message) {
         this.fire_hooks('onGood', () => {
             this.submittable = true
             if(this.form) {
@@ -337,7 +339,9 @@ export default class Form {
             if(this.visuals.good) {
                 this.tooltip.hide()
             }    
-        })
+        },
+        detailed_status,
+        message)
     }
 
     onchallenge_handler(challenge_key, message) {
@@ -453,13 +457,17 @@ export default class Form {
                 if(data.error) {
                     log.error(data.error)
                 }
+                let detailed_status = null
+                if(data && data.checksum) {
+                    detailed_status = data.checksum.split(";")[2] //what happens if there's a semicolon in the email? Well, it's gonna mess up.
+                }
                 switch(data.status) {
                     case "BAD":
-                    this.onbad_handler(data.message)
+                    this.onbad_handler(detailed_status, data.message)
                     break
     
                     case "GOOD":
-                    this.ongood_handler(data.status, data.checksum, data.message) //status is the wrong thing here.
+                    this.ongood_handler(detailed_status, data.checksum, data.message)
                     break
     
                     case "CHALLENGE":
