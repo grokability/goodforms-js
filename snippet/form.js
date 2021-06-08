@@ -75,7 +75,7 @@ export default class Form {
         if(this.form && !this.submit_button && this.submit_button !== false) { //'false' means "don't disable submit buttons"
             log.debug("Trying to find submit buttons...")
             let submit_buttons=[]
-            for(let i=0; i< this.form.elements.length; i++) {
+            for(let i=0; i < this.form.elements.length; i++) {
                 let element = this.form.elements[i]
                 log.debug("Checking element: "+element+" - nodeName: '"+element.nodeName+"' Type: '"+element.type+"'")
                 if((element.nodeName == "INPUT" && element.type =="submit") || (element.nodeName == "BUTTON" && element.type != "reset" && element.type != "button")) {
@@ -245,6 +245,7 @@ export default class Form {
     }
 
     set_submit_button_disabled(state) {
+        this.submittable = !state // if disabled == true, submittable == false; if disabled = false, submittable = true
         if(this.submit_button) {
             log.debug("Trying to disable submit button...")
             if(is_array(this.submit_button)) {
@@ -303,9 +304,12 @@ export default class Form {
     }
 
     onchange_handler() {
-        this.submittable = false //field has changed; not submittable until this returns!
+        this.disable_submits() //field has changed; not submittable until this returns!
         this.verifying = this.email_field.value
         //FIXME - should we set an 'in-flight' variable, so we know not to double-verify?
+        if(this.verifying == "" ) {
+            return
+        }
         this.verify(this.email_field.value, (results) => {
             log.debug("Verification results are: ")
             log.debugdir(results)
@@ -315,7 +319,6 @@ export default class Form {
 
     onbad_handler(detailed_status, message) {
         this.fire_hooks('onBad', () => {
-            this.submittable = false
             this.disable_submits()    
         }, 
         () => {
@@ -346,7 +349,6 @@ export default class Form {
 
     onchallenge_handler(challenge_key, message) {
         this.fire_hooks('onChallenge', () => {
-            this.submittable = false;
             this.disable_submits();
         },
         () => {
