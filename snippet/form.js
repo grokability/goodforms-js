@@ -89,10 +89,9 @@ export default class Form {
             // if no 'visuals' override, default visuals setting is all-on
             this.visuals = duplicate(visuals_all_on)
         }
-        this.initialize_dom()
+        this.initialize_dom() // this calls this.disable_submits(), which sets this.submittable = false
         this.modal = new modal(this.email_field)
         this.tooltip = new tooltip(this.email_field) //this is lightweight and doesn't do anything until you actually *show* it
-        this.submittable = false
     }
 
     unwrap_assign(name, element) {
@@ -332,11 +331,10 @@ export default class Form {
 
     ongood_handler(detailed_status, checksum, message) {
         this.fire_hooks('onGood', () => {
-            this.submittable = true
             if(this.form) {
                 update_hidden_fields(this.form, checksum, status)
-                this.enable_submits()
             }
+            this.enable_submits()
         },
         () => {
             if(this.visuals.good) {
@@ -398,7 +396,6 @@ export default class Form {
         this.fire_hooks('onError',() => {
             log.debug("Error detected?")
             this.tooltip.remove()
-            this.submittable = true
             this.enable_submits()
         },() => {
             log.debug("No default visuals for error?")
