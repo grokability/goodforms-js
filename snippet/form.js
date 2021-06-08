@@ -245,7 +245,7 @@ export default class Form {
     }
 
     set_submit_button_disabled(state) {
-        this.submittable = !state // if disabled == true, submittable == false; if disabled = false, submittable = true
+        this.submittable = !state // if disabled == true, submittable = false; if disabled == false, submittable = true
         if(this.submit_button) {
             log.debug("Trying to disable submit button...")
             if(is_array(this.submit_button)) {
