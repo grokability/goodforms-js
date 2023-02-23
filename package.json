@@ -1,7 +1,7 @@
 {
   "name": "snippet",
   "version": "1.0.0",
-  "description": "",
+  "description": "Javascript to validate email addresses, optionally using the paid Goodforms service",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -11,8 +11,12 @@
     "publish": "aws --profile bespin s3 cp dist/ s3://cdn.goodverification.com/ --recursive --exclude '*' --include 'verify.js*'",
     "purge": "aws --profile bespin cloudfront create-invalidation --distribution-id ENRJKUI04P9HN --paths '/*'"
   },
-  "author": "",
-  "license": "SEE LICENSE IN LICENSE.TXT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/grokability/goodforms-js.git"
+  },
+  "author": "bwetherington@grokability.com",
+  "license": "AGPL",
   "dependencies": {
     "browser-jsonp": "^1.1.5",
     "micromodal": "^0.4.6",
