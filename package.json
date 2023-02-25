@@ -1,8 +1,10 @@
 {
-  "name": "snippet",
-  "version": "1.0.0",
+  "name": "goodforms",
+  "version": "2.0.0",
   "description": "Javascript to validate email addresses, optionally using the paid Goodforms service",
   "main": "index.js",
+  "browser": "index.js",
+  "_notes": "does this mean we don't do main? I'm not sure. Can you include this in any other borwser-based project?",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "watch": "SERVERIP=$(ifconfig en0|grep 'inet '|cut -d ' ' -f 2); echo \"SERVERIP IS: $SERVERIP\"; rollup -c --watch --environment SNIPPET_ENV:dev --environment SERVERIP:$SERVERIP",

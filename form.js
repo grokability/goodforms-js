@@ -5,6 +5,7 @@ import JSONP from "browser-jsonp"
 
 import { modal, update_hidden_fields} from "./visuals" //commented-out: tooltip
 import { tooltip } from "./tooltip"
+import validator from "./validator"
 // import { domainToUnicode } from "url"
 // import { stringify } from "querystring"
 
@@ -27,7 +28,6 @@ const options_hash = {
     onChallenge: "function",
     onError: "function",
     visuals: "booleanOrVisualsObj", // this may be deprecated?
-    manual: "boolean",
     timeout: "number"
 } // css" (not yet?)
 
@@ -47,9 +47,9 @@ export default class Form {
                 return false
             }
         }
-        if(!this.form_key) {
-            return log.error("No Form Key set!")
-        }
+        // if(!this.form_key) {
+        //     return log.debug("No Form Key set!")
+        // }
         if(!this.timeout) {
             this.timeout = 10000
         } else {
@@ -78,7 +78,7 @@ export default class Form {
             for(let i=0; i < this.form.elements.length; i++) {
                 let element = this.form.elements[i]
                 log.debug("Checking element: "+element+" - nodeName: '"+element.nodeName+"' Type: '"+element.type+"'")
-                if((element.nodeName == "INPUT" && element.type =="submit") || (element.nodeName == "BUTTON" && element.type != "reset" && element.type != "button")) {
+                if((element.nodeName == "INPUT" && element.type == "submit") || (element.nodeName == "BUTTON" && element.type != "reset" && element.type != "button")) {
                     log.debug("Found a submit button")
                     submit_buttons.push(element)
                 }
@@ -432,21 +432,33 @@ export default class Form {
             timed_out = true
             this.onerror_handler(new Error("Timeout"))
         }, this.timeout)
-        JSONP({
-            url: HOST+'/'+url,
-            data: data,
-            success: (data) => {
-                if(timed_out) { //prevent success handler from firing *after* a timeout had already fired
-                    return
-                }
-                window.clearTimeout(to)
-                return success(data)
-            },
-            error: (err) => {
-                window.clearTimeout(to)
-                this.onerror_handler(err)
+
+        let success_func = (data) => {
+            if(timed_out) { //prevent success handler from firing *after* a timeout had already fired
+                return
             }
-        })
+            window.clearTimeout(to)
+            return success(data)
+        }
+
+        let error_func = (err) => {
+            window.clearTimeout(to)
+            this.onerror_handler(err)
+        }
+
+        if (!this.form_key) {
+            //do JS-based validation only; but invoke the same callbacks and whatnot the same as before.
+            validator[url](data, success_func, error_func)
+        } else {
+            //do server-side validation via GoodForms
+            JSONP({
+                url: HOST+'/'+url,
+                data: data,
+                success: success_func,
+                error: error_func
+            })
+        }
+
     }
 
     verify(email, callback) {

@@ -5,8 +5,7 @@ import { duplicate } from "./utils.js"
 
 export default function (form_key,options) {
     if(!form_key) {
-        log.error("Form key was not set")
-        return
+        log.debug("Form key was not set (auto.js)")
     }
     let my_options
     if(options) {
