@@ -9,6 +9,19 @@ In your HTML, add:
 Then run, near the bottom of your page:
 
 ```js
+Goodforms()
+```
+You can also specify a specific JSON-via DNS-over-HTTPS (or HTTP) endpoint. By default, we use Cloudflare (at 
+https://cloudflare-dns.com/dns-query), but you 
+could, for example, use Google's DoH endpoint at: `https://dns.google/resolve` by passing an option into the 
+`Goodforms()` method - e.g. `Goodforms({doh_json_server: 'https://dns.google/resolve'})`. We support any 
+Dns-over-HTTP(S)
+solution that allows outside site access (e.g. an HTTP header of `Access-Control-Allow-Origin: *`), and follows Google's 
+DNS JSON format.
+
+
+If you've signed up for the Goodforms email validation service, you can use:
+```js
 Goodforms('form_key')
 ```
 
@@ -19,11 +32,7 @@ $(function() {Goodforms('form_key');}))
 
 And it should try to attach to any field in your page with a _name_ of `email`, or of type `email`, or an `id` of `email`.
 
-It will show a pop-up, or not, based on whatever it is you do or whatever
-
-~~Verifications should fire when a user tabs-off of an email field, or tries to submit it. By default, those verification messages will be
-set to the element's status using HTML5 Constraint Validation - e.g. using setCustomValidity(). Additionally, the verification message will
-be set on the data-goodforms-status attribute in the email input field.~~
+It will show a pop-up, or not, based on the validity of the email address that you type into the field.
 
 Form submission will be prevented until the email field is marked as Valid.
 

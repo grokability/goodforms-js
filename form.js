@@ -5,7 +5,8 @@ import JSONP from "browser-jsonp"
 
 import { modal, update_hidden_fields} from "./visuals" //commented-out: tooltip
 import { tooltip } from "./tooltip"
-import validator from "./validator"
+import resolver from "./resolver";
+
 // import { domainToUnicode } from "url"
 // import { stringify } from "querystring"
 
@@ -50,6 +51,11 @@ export default class Form {
         // if(!this.form_key) {
         //     return log.debug("No Form Key set!")
         // }
+        if(this.doh_json_server) {
+            this.doh_server = new resolver(this.doh_json_server)
+        } else {
+            this.doh_server = new resolver('https://cloudflare-dns.com/dns-query')
+        }
         if(!this.timeout) {
             this.timeout = 10000
         } else {
@@ -425,7 +431,7 @@ export default class Form {
     // but also, helpers that *we* use - so should they be invoking our callbacks for us?
     // maybe yes only if manual is false?
 
-    jsp(url, data, success) {
+    jsp(url, doh_server, data, success) {
         data.form_key = this.form_key //this mutates the source; but we don't care for our purposes
         let timed_out = false
         let to = window.setTimeout(() => {
@@ -446,9 +452,10 @@ export default class Form {
             this.onerror_handler(err)
         }
 
+        console.warn("This.form_key is: "+this.form_key)
         if (!this.form_key) {
             //do JS-based validation only; but invoke the same callbacks and whatnot the same as before.
-            validator[url](data, success_func, error_func)
+            doh_server[url](data, success_func, error_func)
         } else {
             //do server-side validation via GoodForms
             JSONP({
@@ -463,7 +470,7 @@ export default class Form {
 
     verify(email, callback) {
         log.debug("VERIFY low-level method invoked!")
-        this.jsp("verify", {email: email}, 
+        this.jsp("verify", this.doh_server, {email: email},
             (data) => {
                 if(data.error) {
                     log.error(data.error)
