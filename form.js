@@ -27,7 +27,6 @@ const options_hash = {
     onChallenge: "function",
     onError: "function",
     visuals: "booleanOrVisualsObj", // this may be deprecated?
-    manual: "boolean",
     timeout: "number"
 } // css" (not yet?)
 
@@ -332,7 +331,7 @@ export default class Form {
     ongood_handler(detailed_status, checksum, message) {
         this.fire_hooks('onGood', () => {
             if(this.form) {
-                update_hidden_fields(this.form, checksum, status)
+                update_hidden_fields(this.form, checksum, status) //TODO: why is this struckthrough?
             }
             this.enable_submits()
         },
@@ -425,27 +424,27 @@ export default class Form {
     // but also, helpers that *we* use - so should they be invoking our callbacks for us?
     // maybe yes only if manual is false?
 
-    jsp(url, data, success) {
+    jsp(url, data, complete) {
         data.form_key = this.form_key //this mutates the source; but we don't care for our purposes
         let timed_out = false
+        let completion_handler = (data) => {
+            //fires on success *or* on failure
+            if(timed_out) { //prevent completion handler from firing *after* a timeout had already been fired
+                return
+            }
+            window.clearTimeout(to)
+            return complete(data)
+        }
         let to = window.setTimeout(() => {
+            // have to fire completion_handler *first*, but *then* immediately set timed_out
             timed_out = true
-            this.onerror_handler(new Error("Timeout"))
+            return complete({status: "ERROR", message: "Timeout"})
         }, this.timeout)
         JSONP({
             url: HOST+'/'+url,
             data: data,
-            success: (data) => {
-                if(timed_out) { //prevent success handler from firing *after* a timeout had already fired
-                    return
-                }
-                window.clearTimeout(to)
-                return success(data)
-            },
-            error: (err) => {
-                window.clearTimeout(to)
-                this.onerror_handler(err)
-            }
+            success: completion_handler,
+            error: () => completion_handler({status: "ERROR", message: "Server Error"})
         })
     }
 
@@ -453,7 +452,7 @@ export default class Form {
         log.debug("VERIFY low-level method invoked!")
         this.jsp("verify", {email: email}, 
             (data) => {
-                if(data.error) {
+                if(data.error) { //out-of-band type of error, or does this *never* fire?
                     log.error(data.error)
                 }
                 let detailed_status = null
@@ -471,6 +470,10 @@ export default class Form {
     
                     case "CHALLENGE":
                     this.onchallenge_handler(data.challenge_key, data.message)
+                    break
+
+                    case "ERROR":
+                    this.onerror_handler(data.message)
                     break
     
                     default:
