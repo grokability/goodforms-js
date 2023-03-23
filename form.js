@@ -338,7 +338,7 @@ export default class Form {
     ongood_handler(detailed_status, checksum, message) {
         this.fire_hooks('onGood', () => {
             if(this.form) {
-                update_hidden_fields(this.form, checksum, status)
+                update_hidden_fields(this.form, checksum, status) //TODO: why is this struckthrough?
             }
             this.enable_submits()
         },
@@ -431,21 +431,22 @@ export default class Form {
     // but also, helpers that *we* use - so should they be invoking our callbacks for us?
     // maybe yes only if manual is false?
 
-    jsp(url, doh_server, data, success) {
+    jsp(url, doh_server, data, complete) {
         data.form_key = this.form_key //this mutates the source; but we don't care for our purposes
         let timed_out = false
-        let to = window.setTimeout(() => {
-            timed_out = true
-            this.onerror_handler(new Error("Timeout"))
-        }, this.timeout)
-
-        let success_func = (data) => {
-            if(timed_out) { //prevent success handler from firing *after* a timeout had already fired
+        let completion_handler = (data) => {
+            //fires on success *or* on failure
+            if(timed_out) { //prevent completion handler from firing *after* a timeout had already been fired
                 return
             }
             window.clearTimeout(to)
-            return success(data)
+            return complete(data)
         }
+        let to = window.setTimeout(() => {
+            // have to fire completion_handler *first*, but *then* immediately set timed_out
+            timed_out = true
+            return complete({status: "ERROR", message: "Timeout"})
+        }, this.timeout)
 
         let error_func = (err) => {
             window.clearTimeout(to)
@@ -455,14 +456,14 @@ export default class Form {
         console.warn("This.form_key is: "+this.form_key)
         if (!this.form_key) {
             //do JS-based validation only; but invoke the same callbacks and whatnot the same as before.
-            doh_server[url](data, success_func, error_func)
+            doh_server[url](data, completion_handler, error_func)
         } else {
             //do server-side validation via GoodForms
             JSONP({
                 url: HOST+'/'+url,
                 data: data,
-                success: success_func,
-                error: error_func
+                success: completion_handler,
+                error: () => completion_handler({status: "ERROR", message: "Server Error"})
             })
         }
 
@@ -472,7 +473,7 @@ export default class Form {
         log.debug("VERIFY low-level method invoked!")
         this.jsp("verify", this.doh_server, {email: email},
             (data) => {
-                if(data.error) {
+                if(data.error) { //out-of-band type of error, or does this *never* fire?
                     log.error(data.error)
                 }
                 let detailed_status = null
@@ -490,6 +491,10 @@ export default class Form {
     
                     case "CHALLENGE":
                     this.onchallenge_handler(data.challenge_key, data.message)
+                    break
+
+                    case "ERROR":
+                    this.onerror_handler(data.message)
                     break
     
                     default:
