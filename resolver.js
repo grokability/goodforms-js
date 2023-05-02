@@ -5,10 +5,6 @@ export default class Resolver {
         this.doh_server = doh_server
     }
 
-    blargh() {
-        console.warn("Hey, resolver loaded at least. Here's my server: "+this.doh_server)
-    }
-
     lookup(type, name, callback) {
         const req = new XMLHttpRequest();
         // req.addEventListener("load", reqListener);
@@ -21,6 +17,9 @@ export default class Resolver {
             let results = JSON.parse(req.responseText)
             console.dir(results)
             callback(results)
+        })
+        req.addEventListener('error',function (event) {
+            callback({'status': 'ERROR', 'message': 'DNS Error'})
         })
         req.send()
     }

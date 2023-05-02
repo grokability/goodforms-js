@@ -5,7 +5,7 @@ import JSONP from "browser-jsonp"
 
 import { modal, update_hidden_fields} from "./visuals" //commented-out: tooltip
 import { tooltip } from "./tooltip"
-import resolver from "./resolver";
+import validator from "./validator";
 
 // import { domainToUnicode } from "url"
 // import { stringify } from "querystring"
@@ -29,7 +29,8 @@ const options_hash = {
     onChallenge: "function",
     onError: "function",
     visuals: "booleanOrVisualsObj", // this may be deprecated?
-    timeout: "number"
+    timeout: "number",
+    doh_json_server: "string" //need a test for this parameter.
 } // css" (not yet?)
 
 const visuals_all_on = {good:true, bad:true, challenge:true}
@@ -48,14 +49,14 @@ export default class Form {
                 return false
             }
         }
+        if(!this.doh_json_server) {
+            this.doh_json_server = 'https://cloudflare-dns.com/dns-query'
+        }
         // if(!this.form_key) {
         //     return log.debug("No Form Key set!")
         // }
-        if(this.doh_json_server) {
-            this.doh_server = new resolver(this.doh_json_server)
-        } else {
-            this.doh_server = new resolver('https://cloudflare-dns.com/dns-query')
-        }
+        this.doh_server = new validator(this.doh_json_server)
+
         if(!this.timeout) {
             this.timeout = 10000
         } else {
@@ -428,12 +429,21 @@ export default class Form {
     }
 
     // LOW-LEVEL JSON helpers
+    // I'm wondering if we have a layering problem here, should maybe all the low-level (manual-mode) methods
+    // be elsewhere? It could be argued.
     // but also, helpers that *we* use - so should they be invoking our callbacks for us?
     // maybe yes only if manual is false?
 
-    jsp(url, doh_server, data, complete) {
+    jsp(url, data, complete) {
         data.form_key = this.form_key //this mutates the source; but we don't care for our purposes
         let timed_out = false
+
+        let to = window.setTimeout(() => {
+            // have to fire completion_handler *first*, but *then* immediately set timed_out
+            timed_out = true
+            return complete({status: "ERROR", message: "Timeout"})
+        }, this.timeout)
+
         let completion_handler = (data) => {
             //fires on success *or* on failure
             if(timed_out) { //prevent completion handler from firing *after* a timeout had already been fired
@@ -442,21 +452,12 @@ export default class Form {
             window.clearTimeout(to)
             return complete(data)
         }
-        let to = window.setTimeout(() => {
-            // have to fire completion_handler *first*, but *then* immediately set timed_out
-            timed_out = true
-            return complete({status: "ERROR", message: "Timeout"})
-        }, this.timeout)
-
-        let error_func = (err) => {
-            window.clearTimeout(to)
-            this.onerror_handler(err)
-        }
 
         console.warn("This.form_key is: "+this.form_key)
         if (!this.form_key) {
             //do JS-based validation only; but invoke the same callbacks and whatnot the same as before.
-            doh_server[url](data, completion_handler, error_func)
+            console.dir(this.doh_server)
+            this.doh_server.verify(data, completion_handler)
         } else {
             //do server-side validation via GoodForms
             JSONP({
@@ -471,7 +472,7 @@ export default class Form {
 
     verify(email, callback) {
         log.debug("VERIFY low-level method invoked!")
-        this.jsp("verify", this.doh_server, {email: email},
+        this.jsp("verify", {email: email},
             (data) => {
                 if(data.error) { //out-of-band type of error, or does this *never* fire?
                     log.error(data.error)
@@ -480,6 +481,8 @@ export default class Form {
                 if(data && data.checksum) {
                     detailed_status = data.checksum.split(";")[2] //what happens if there's a semicolon in the email? Well, it's gonna mess up.
                 }
+                console.log("Here is the data object:")
+                console.dir(data)
                 switch(data.status) {
                     case "BAD":
                     this.onbad_handler(detailed_status, data.message)
