@@ -150,7 +150,7 @@ export default class Form {
                     this[name] = element
                     return true
                 } else {
-                    log.error("Unknown type for parameter: "+name+" (wanted: "+options_hash[name]+")")
+                    log.error("Unknown type for parameter: "+name+" (got: "+(typeof element)+", wanted: "+options_hash[name]+")")
                     return false
                 }
         }
