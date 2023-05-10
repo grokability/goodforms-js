@@ -450,7 +450,6 @@ export default class Form {
             return complete(data)
         }
 
-        console.warn("This.form_key is: "+this.form_key)
         if (!this.form_key) {
             //do JS-based validation only; but invoke the same callbacks and whatnot the same as before.
             this.doh_server.verify(data, completion_handler)
@@ -477,8 +476,7 @@ export default class Form {
                 if(data && data.checksum) {
                     detailed_status = data.checksum.split(";")[2] //what happens if there's a semicolon in the email? Well, it's gonna mess up.
                 }
-                console.log("Here is the data object:")
-                console.dir(data)
+
                 switch(data.status) {
                     case "BAD":
                     this.onbad_handler(detailed_status, data.message)
