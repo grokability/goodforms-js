@@ -43,7 +43,6 @@ JQuery, it would look like:
 $(function () {
     Goodforms('form_key');
 })
-)
 ```
 
 And it should try to attach to any field in your page with a _name_ of `email`, or of type `email`, or an `id`

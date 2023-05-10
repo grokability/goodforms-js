@@ -6,7 +6,9 @@ import { duplicate } from "./utils.js"
 
 export default function (form_key, options) {
     log.debug("MAIN INIT ROUTINE RUNNING!")
-    if(typeof form_key === 'object' && typeof options === 'undefined') {
+    if(typeof options === 'undefined') {
+        // handle either Goodforms({blah:'blah',blah:'blah'})
+        // or Goodforms()
         options = form_key
         form_key = '' // TODO: I *think* it might be cleaner to do 'undefined' here?
     }
@@ -14,7 +16,7 @@ export default function (form_key, options) {
         log.debug_enabled = options.debug
     }
     if(!form_key && !options['form_key']) {
-        log.debug('Form key was not set (root-level)') // THIS is where change something?
+        log.debug('Form key was not set (root-level)')
     }
     if(!options || (!options.email_field && !options.manual)) {
         log.debug("Engaging 'auto' - ")

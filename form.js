@@ -52,9 +52,6 @@ export default class Form {
         if(!this.doh_json_server) {
             this.doh_json_server = 'https://cloudflare-dns.com/dns-query'
         }
-        // if(!this.form_key) {
-        //     return log.debug("No Form Key set!")
-        // }
         this.doh_server = new validator(this.doh_json_server)
 
         if(!this.timeout) {
@@ -456,7 +453,6 @@ export default class Form {
         console.warn("This.form_key is: "+this.form_key)
         if (!this.form_key) {
             //do JS-based validation only; but invoke the same callbacks and whatnot the same as before.
-            console.dir(this.doh_server)
             this.doh_server.verify(data, completion_handler)
         } else {
             //do server-side validation via GoodForms
