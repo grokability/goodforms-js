@@ -5,3 +5,4 @@ dist/dev-verify.min.js.map
 dist/prod-verify.js
 dist/verify.js
 dist/verify.js.map
+.idea
