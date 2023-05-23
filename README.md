@@ -13,7 +13,7 @@ In your HTML, add:
 
 ```html
 
-<script src='https://cdn.goodforms.com/verify.js'></script>
+<script src='https://unpkg.com/goodforms@0.9.0'></script>
 ```
 
 Then run, near the bottom of your page:
@@ -54,18 +54,22 @@ Form submission will be prevented until the email field is marked as Valid.
 
 ## How to use from Require.JS (AMD)
 
+`npm install goodforms` should work, then you can just do: `var Goodforms = require('goodforms);` in 
+your .js code.
+
+Or you can try:
 ```js
-require(['https://cdn.goodforms.com/verify.js'], function (Goodforms) {
+requirejs(['https://unpkg.com/goodforms@0.9.0'], function (Goodforms) {
     Goodforms('form_key', {debug: true}) //use as normal
 });
 ```
 
 ## How to use as a Common.JS module
 
-Download the Verification Javascript from https://cdn.goodforms.com/verify.js , rename it to Goodforms, and then:
+run `npm install goodforms`, then:
 
 ```js
-var Goodforms = require('./Goodforms')
+var Goodforms = require('./goodforms')
 ```
 
 ## Debugging
