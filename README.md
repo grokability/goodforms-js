@@ -13,7 +13,7 @@ In your HTML, add:
 
 ```html
 
-<script src='https://unpkg.com/goodforms@0.9.0'></script>
+<script src='https://unpkg.com/goodforms@0.9.1'></script>
 ```
 
 Then run, near the bottom of your page:
@@ -33,7 +33,7 @@ DNS JSON format.
 ## Manual Mode
 
 ```html
-<script src='https://unpkg.com/goodforms@0.9.0'></script>
+<script src='https://unpkg.com/goodforms@0.9.1'></script>
 ```
 
 Then, near the bottom of your page:
@@ -95,7 +95,7 @@ your .js code.
 
 Or you can try:
 ```js
-requirejs(['https://unpkg.com/goodforms@0.9.0'], function (Goodforms) {
+requirejs(['https://unpkg.com/goodforms@0.9.1'], function (Goodforms) {
     Goodforms('form_key', {debug: true}) //use as normal
 });
 ```
