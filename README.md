@@ -30,6 +30,42 @@ Dns-over-HTTP(S)
 solution that allows outside site access (e.g. an HTTP header of `Access-Control-Allow-Origin: *`), and follows Google's
 DNS JSON format.
 
+## Manual Mode
+
+```html
+<script src='https://unpkg.com/goodforms@0.9.0'></script>
+```
+
+Then, near the bottom of your page:
+```js
+var validator = Goodforms({manual: true});
+```
+
+Then, where ever you want to validate an email address, do:
+```js
+validator.verify("some_email@some_domain", function (results) {
+    switch(results.status) {
+        case 'GOOD':
+            // your email address's domain seems like it can accept email
+            break;
+            
+        case 'BAD':
+            // your email address's domain seems like it CANNOT accept email
+            break;
+            
+        case 'CHALLENGE':
+            // this only ever fires if you're using the paid version
+            break;
+            
+        case 'ERROR':
+            // when Javascript errors occur, this _should_ be the callback that fires.
+            break;
+    }
+});
+```
+
+## Goodforms.com paid email verification service
+
 If you've signed up for the Goodforms email validation service, you can use:
 
 ```js
