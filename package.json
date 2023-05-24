@@ -1,6 +1,6 @@
 {
   "name": "goodforms",
-  "version": "0.9.1",
+  "version": "0.9.2",
   "description": "Javascript to validate email addresses, optionally using the paid Goodforms service",
   "keywords": [
     "email",
