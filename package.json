@@ -2,11 +2,23 @@
   "name": "goodforms",
   "version": "0.9.1",
   "description": "Javascript to validate email addresses, optionally using the paid Goodforms service",
-  "keywords": ["email","verification","verify","domain","dns"],
+  "keywords": [
+    "email",
+    "verification",
+    "verify",
+    "domain",
+    "dns"
+  ],
   "browser": "./dist/verify.js",
   "exports": "./index.js",
   "unpkg": "./dist/verify.js",
-  "files": ["/dist/verify.js", "/dist/verify.js.map", "/*.js", "/*.css", "/*.html"],
+  "files": [
+    "/dist/verify.js",
+    "/dist/verify.js.map",
+    "/*.js",
+    "/*.css",
+    "/*.html"
+  ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "watch": "SERVERIP=$(ifconfig en0|grep 'inet '|cut -d ' ' -f 2); echo \"SERVERIP IS: $SERVERIP\"; rollup -c --watch --environment SNIPPET_ENV:dev --environment SERVERIP:$SERVERIP",
