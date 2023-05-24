@@ -13,7 +13,7 @@ In your HTML, add:
 
 ```html
 
-<script src='https://unpkg.com/goodforms@0.9.0'></script>
+<script src='https://unpkg.com/goodforms@0.9.1'></script>
 ```
 
 Then run, near the bottom of your page:
@@ -29,6 +29,42 @@ could, for example, use Google's DoH endpoint at: `https://dns.google/resolve` b
 Dns-over-HTTP(S)
 solution that allows outside site access (e.g. an HTTP header of `Access-Control-Allow-Origin: *`), and follows Google's
 DNS JSON format.
+
+## Manual Mode
+
+```html
+<script src='https://unpkg.com/goodforms@0.9.1'></script>
+```
+
+Then, near the bottom of your page:
+```js
+var validator = Goodforms({manual: true});
+```
+
+Then, where ever you want to validate an email address, do:
+```js
+validator.verify("some_email@some_domain", function (results) {
+    switch(results.status) {
+        case 'GOOD':
+            // your email address's domain seems like it can accept email
+            break;
+            
+        case 'BAD':
+            // your email address's domain seems like it CANNOT accept email
+            break;
+            
+        case 'CHALLENGE':
+            // this only ever fires if you're using the paid version
+            break;
+            
+        case 'ERROR':
+            // when Javascript errors occur, this _should_ be the callback that fires.
+            break;
+    }
+});
+```
+
+## Goodforms.com paid email verification service
 
 If you've signed up for the Goodforms email validation service, you can use:
 
@@ -59,7 +95,7 @@ your .js code.
 
 Or you can try:
 ```js
-requirejs(['https://unpkg.com/goodforms@0.9.0'], function (Goodforms) {
+requirejs(['https://unpkg.com/goodforms@0.9.1'], function (Goodforms) {
     Goodforms('form_key', {debug: true}) //use as normal
 });
 ```
