@@ -2,6 +2,7 @@
   "name": "goodforms",
   "version": "0.9.1",
   "description": "Javascript to validate email addresses, optionally using the paid Goodforms service",
+  "keywords": ["email","verification","verify","domain","dns"],
   "browser": "./dist/verify.js",
   "exports": "./index.js",
   "unpkg": "./dist/verify.js",
