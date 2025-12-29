@@ -120,7 +120,7 @@ You still need, somewhere in your page:
 
 ```html
 
-<script src='https://cdn.goodforms.com/verify.js'></script>
+<script src='https://unpkg.com/goodforms@%VERSION%'></script>
 ```
 
 At some point after your form is loaded, you can specifically attach to it by using:

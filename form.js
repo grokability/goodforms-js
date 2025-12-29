@@ -55,7 +55,7 @@ export default class Form {
         this.doh_server = new validator(this.doh_json_server)
 
         if(!this.timeout) {
-            this.timeout = 10000
+            this.timeout = 15000 // we have been seeing some invalid emails get detected in 11 seconds, so this _should_ be enough room
         } else {
             this.timeout = 1000 * this.timeout //timeout was in seconds, but window.setTimeout() is in milliseconds
         }
@@ -96,6 +96,10 @@ export default class Form {
         this.initialize_dom() // this calls this.disable_submits(), which sets this.submittable = false
         this.modal = new modal(this.email_field)
         this.tooltip = new tooltip(this.email_field) //this is lightweight and doesn't do anything until you actually *show* it
+        if(this.email_field.value) {
+            log.debug("Email field was already filled out, so we're going to manually fire the onchange_handler")
+            this.onchange_handler()
+        }
     }
 
     unwrap_assign(name, element) {
