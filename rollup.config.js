@@ -3,11 +3,11 @@ import postcss from 'rollup-plugin-postcss'
 import replace from '@rollup/plugin-replace'
 import html from 'rollup-plugin-html'
 
-const resolve = require('rollup-plugin-node-resolve')
-const commonjs = require('rollup-plugin-commonjs')
+import { nodeResolve } from '@rollup/plugin-node-resolve'
+import commonjs from '@rollup/plugin-commonjs'
 
 
-module.exports = {
+export default {
   input: 'index.js',
   output: {
     file: "dist/"+(process.env.SNIPPET_ENV == "production" ? 'prod-verify.js': 'dev-verify.js'),
@@ -24,16 +24,17 @@ module.exports = {
   },
   plugins: [      
     commonjs(),
-    resolve(),
+    nodeResolve(),
     replace({
+      'preventAssignment': false,
       'process.env.NODE_ENV': process.env.SNIPPET_ENV == "production" ? JSON.stringify('production') : JSON.stringify('development'),
     }),
     postcss({
       inject: false
     }),
     html({
-			include: '**/*.html'
-		}),
+      include: '**/*.html'
+    }),
     buble()
   ]
 }
