@@ -23,7 +23,7 @@ const options_hash = {
     email_field: "DOMNode",
     form: "DOMNodeOrBoolean",
     submit_button: "DOMNodeOrArrayOfDOMNodes",
-    debug: "BooleanOrString",
+    debug: "BooleanOrVerbose",
     onGood: "function",
     onBad: "function",
     onChallenge: "function",
@@ -129,6 +129,7 @@ export default class Form {
                     this.visuals = duplicate(visuals_all_on) //any missing keys should default to 'on' (true)
                     for(var key in element) {
                         if(!visuals_all_on[key]) { //if the 'visuals_all_on' constant doesn't have 'true' for this, this thing has unneeded keys
+                            log.error(name+" key "+key+" was unexpected")
                             return false
                         }
                         this.visuals[key] = element[key]
@@ -137,6 +138,7 @@ export default class Form {
                     //now make sure to set default 'true' for anything missed.
                     return true
                 }
+                log.error(name+" is incorrect type - got:"+typeof(element))
                 return false
                 break
 
@@ -149,8 +151,13 @@ export default class Form {
                 }
                 break
 
-            case "BooleanOrString":
-                return typeof element === "boolean" || typeof element === "string"
+            case "BooleanOrVerbose":
+                if(typeof element === "boolean" || (typeof element === "string" && element === "verbose")) {
+                    return true;
+                } else {
+                    log.error('Wanted either boolean true or false, or the string "verbose" for key '+name)
+                    return false
+                }
             
             default:
                 if(typeof element == options_hash[name]) {
