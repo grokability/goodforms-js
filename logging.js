@@ -10,13 +10,33 @@ class Log {
     }
 
     debug(msg) {
-        if(this.debug_enabled) {
+        // 'debug' messages show as debug when debug_enabled is just 'true'
+        // 'but show as 'info' if debug_enabled is 'verbose'
+        if(this.debug_enabled === "verbose") {
+            this.log_at_level('info',msg)
+        } else if(this.debug_enabled) {
+            this.log_at_level('debug',msg)
+        }
+    }
+
+    verbose(msg) {
+        if(this.debug_enabled === "verbose") {
             this.log_at_level('debug',msg)
         }
     }
 
     debugdir(msg) {
         if(this.debug_enabled) {
+            if(typeof console !== "undefined" && console["dir"]) {
+                this.log_at_level('dir',msg)
+            } else {
+                this.log_at_level('debug',msg)
+            }
+        }
+    }
+
+    verbosedir(msg) {
+        if(this.debug_enabled === "verbose") {
             if(typeof console !== "undefined" && console["dir"]) {
                 this.log_at_level('dir',msg)
             } else {

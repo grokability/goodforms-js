@@ -23,7 +23,7 @@ const options_hash = {
     email_field: "DOMNode",
     form: "DOMNodeOrBoolean",
     submit_button: "DOMNodeOrArrayOfDOMNodes",
-    debug: "boolean",
+    debug: "BooleanOrString",
     onGood: "function",
     onBad: "function",
     onChallenge: "function",
@@ -38,11 +38,11 @@ const visuals_all_off = {good:false, bad:false, challenge:false}
 
 export default class Form {
     constructor(options) {
-        log.debug("Invoking Class constructor!")
-        log.debugdir(options)
+        log.verbose("Invoking Class constructor!")
+        log.verbosedir(options)
         
         for(let key in options) {
-            log.debug("Setting: "+key+" to "+options[key])
+            log.verbose("Setting: "+key+" to "+options[key])
             //this[key] = options[key] //this will initialize all the callbacks, btw. Even if 'manual' is turned on! Do we...want that? TODO
             if(!this.unwrap_assign(key, options[key])) {
                 //bail out if any options weren't assignable
@@ -68,20 +68,20 @@ export default class Form {
             return log.error("No Email Field set!")
         }
         if(typeof this.form == "undefined" || this.form === true ) { // 'true' is just an explicit way of saying 'automatically figure out what form this lives in'
-            log.debug("Trying to guess Form value")
+            log.verbose("Trying to guess Form value")
             //try and guess form from email field's 'form' property
             this.form = this.email_field.form
-            log.debug("Picked: "+this.form)
+            log.verbose("Picked: "+this.form)
         }
         if(!this.form && this.form !== false) { // 'false' means "don't mess with the form, or maybe there isn't one"
             return log.error("Could not determine Form!")
         }
         if(this.form && !this.submit_button && this.submit_button !== false) { //'false' means "don't disable submit buttons"
-            log.debug("Trying to find submit buttons...")
+            log.verbose("Trying to find submit buttons...")
             let submit_buttons=[]
             for(let i=0; i < this.form.elements.length; i++) {
                 let element = this.form.elements[i]
-                log.debug("Checking element: "+element+" - nodeName: '"+element.nodeName+"' Type: '"+element.type+"'")
+                log.verbose("Checking element: "+element+" - nodeName: '"+element.nodeName+"' Type: '"+element.type+"'")
                 if((element.nodeName == "INPUT" && element.type == "submit") || (element.nodeName == "BUTTON" && element.type != "reset" && element.type != "button")) {
                     log.debug("Found a submit button")
                     submit_buttons.push(element)
@@ -148,6 +148,9 @@ export default class Form {
                     return this.unwrap_domnode(name,element,false)
                 }
                 break
+
+            case "BooleanOrString":
+                return typeof element === "boolean" || typeof element === "string"
             
             default:
                 if(typeof element == options_hash[name]) {
@@ -164,7 +167,7 @@ export default class Form {
         // if it's a jquery element, return the real DOM element underneath.
         // if it's still bad, error.
         if(typeof(element) === 'object' && element['jquery'] && element['get']) {
-            log.debug("jQuery-like object found for "+name)
+            log.verbose("jQuery-like object found for "+name)
             if(element.length == 0 ) {
                 log.error("No elements found in jQuery selector for "+name)
                 return false
@@ -208,7 +211,7 @@ export default class Form {
             this[name] = element
             return true
         }
-        log.debug("Unknown element type passed for "+name+": "+typeof(element)+", and its prototype is: "+(element['prototype'] ? element.prototype : '<unknown>')+", and its source: "+(element && element['prototype'] && element['prototype']['toSource'] ? element.prototype.toSource() : '<unavailable>'))
+        log.error("Unknown element type passed for "+name+": "+typeof(element)+", and its prototype is: "+(element['prototype'] ? element.prototype : '<unknown>')+", and its source: "+(element && element['prototype'] && element['prototype']['toSource'] ? element.prototype.toSource() : '<unavailable>'))
         return false
     }
 
@@ -228,7 +231,7 @@ export default class Form {
         if(this.form) {
             let old_onsubmit = this.form.onsubmit
             this.form.onsubmit = (event) => {
-                log.debug("On Submit handler firing!")
+                log.verbose("On Submit handler firing!")
                 var results
                 if(old_onsubmit) {
                     results = old_onsubmit(event) //TODO - confusing, *their* old onsubmit handler fires *first*?
@@ -254,9 +257,9 @@ export default class Form {
     set_submit_button_disabled(state) {
         this.submittable = !state // if disabled == true, submittable = false; if disabled == false, submittable = true
         if(this.submit_button) {
-            log.debug("Trying to disable submit button...")
+            log.verbose("Trying to disable submit button...")
             if(is_array(this.submit_button)) {
-                log.debug("Submit button IS ARRAY")
+                log.verbose("Submit button IS ARRAY")
                 for(let x in this.submit_button) {
                     this.submit_button[x].disabled = state
                 }
@@ -295,7 +298,7 @@ export default class Form {
     }
 
     fire_hooks(name, behavior, visuals, ...params) {
-        log.debug("Firing hooks for: "+name)
+        log.verbose("Firing hooks for: "+name)
         if(this.manual) {
             return
         }
@@ -370,8 +373,8 @@ export default class Form {
                     return
                 }
                 this.challenge(this.email_field.value, challenge_key, (results) => {
-                    log.debug("Challenge results are: ")
-                    log.debugdir(results)
+                    log.verbose("Challenge results are: ")
+                    log.verbosedir(results)
                     if(results.status == "ACCEPTED") {
                         this.modal.pin_input()
                         this.modal.set_modal_action( () => {
@@ -386,7 +389,7 @@ export default class Form {
                                      * their hooks fire correctly. But also, we *do* want to update the checksums and all the
                                      * other default behavior of a 'good' verification
                                      */
-                                    this.ongood_handler(response.status, response.checksum)
+                                    this.ongood_handler(response.status, response.checksum) //FIXME - that's supposed to be a 'detailed status' - not just GOOD
                                 } else {
                                     this.modal.bad_pin()
                                 }
@@ -417,9 +420,9 @@ export default class Form {
         if(this.submittable && this.email_field.value === this.verifying) {
             return true
         }
-        log.debug("Cannot submit form - submittable? "+this.submittable+" our field value? "+this.email_field.value+" what we're verifying? "+this.verifying)
+        log.verbose("Cannot submit form - submittable? "+this.submittable+" our field value? "+this.email_field.value+" what we're verifying? "+this.verifying)
         if(this.email_field.value !== this.verifying) {
-            log.debug("sending new verification!")
+            log.verbose("sending new verification!")
             this.verify(this.email_field.value, (results) => {  //FIXME - this could double-verify!
                 if(this.submittable && this.form) { //don't directly inspect 'results', assume the onBlah handlers will update 'submittable'
                     this.form.submit()
@@ -470,14 +473,14 @@ export default class Form {
     }
 
     verify(email, callback) {
-        log.debug("VERIFY low-level method invoked!")
+        log.verbose("VERIFY low-level method invoked!")
         this.jsp("verify", {email: email},
             (data) => {
                 if(data.error) { //out-of-band type of error, or does this *never* fire?
                     log.error(data.error)
                 }
                 let detailed_status = null
-                if(data && data.checksum) {
+                if(data && data.checksum) { // FIXME - grabbing detailed status via SPLIT
                     detailed_status = data.checksum.split(";")[2] //what happens if there's a semicolon in the email? Well, it's gonna mess up.
                 }
 

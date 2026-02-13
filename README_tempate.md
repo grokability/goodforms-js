@@ -1,3 +1,7 @@
+<!--
+Note that if you're looking at README.md, that file is *generated* from README_template.md - so do *not*
+directly edit README.md, or your changes will be lost.
+-->
 # Introduction
 
 Goodforms-js is a Javascript library that enables easy, browser-based validation of email addresses, by looking at the

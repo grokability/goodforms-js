@@ -129,7 +129,7 @@ export class modal {
     }
 
     get_modal(challenge_key) { //TODO - this needs breaking up, it's a little rambly
-        log.debug("Getting modal - challenge key is: "+challenge_key)
+        log.verbose("Getting modal - challenge key is: "+challenge_key)
         if(!this.modal) {
 
             //TODO prolly need to rename all of these classes to something unique
@@ -203,9 +203,9 @@ export class modal {
         MicroModal.show('goodforms-modal',{
             debugMode: true,
             awaitCloseAnimation: true,
-            onShow: modal => log.debug(`${modal.id} is shown`),
+            onShow: modal => log.verbose(`${modal.id} is shown`),
             onClose: modal => {
-                log.debug(`${modal.id} is hidden`)
+                log.verbose(`${modal.id} is hidden`)
                 if(this.modal) {
                     document.body.removeChild(this.modal)
                     delete this.modal
