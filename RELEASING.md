@@ -10,4 +10,4 @@ or
 
 The post-versioning script should build assets, but if it didn't, run `npm run production` to build them.
 
-Commit, and then push and publish (in either order)
+Commit, and then push and then npm login && publish
