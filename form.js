@@ -1,7 +1,6 @@
 
 import log from "./logging"
 import { is_array, is_function, duplicate } from "./utils"
-import JSONP from "browser-jsonp"
 
 import { modal, update_hidden_fields} from "./visuals" //commented-out: tooltip
 import { tooltip } from "./tooltip"
@@ -52,13 +51,15 @@ export default class Form {
         if(!this.doh_json_server) {
             this.doh_json_server = 'https://cloudflare-dns.com/dns-query'
         }
-        this.doh_server = new validator(this.doh_json_server)
 
         if(!this.timeout) {
             this.timeout = 15000 // we have been seeing some invalid emails get detected in 11 seconds, so this _should_ be enough room
         } else {
             this.timeout = 1000 * this.timeout //timeout was in seconds, but window.setTimeout() is in milliseconds
         }
+
+        this.doh_server = new validator(this.doh_json_server,this.timeout)
+
         if(this.manual) {
             //bail out of the rest of setup for manual-mode
             log.debug("Manual mode selected; exiting setup")
@@ -447,34 +448,38 @@ export default class Form {
 
     jsp(url, data, complete) {
         data.form_key = this.form_key //this mutates the source; but we don't care for our purposes
-        let timed_out = false
-
-        let to = window.setTimeout(() => {
-            // have to fire completion_handler *first*, but *then* immediately set timed_out
-            timed_out = true
-            return complete({status: "ERROR", message: "Timeout"})
-        }, this.timeout)
-
-        let completion_handler = (data) => {
-            //fires on success *or* on failure
-            if(timed_out) { //prevent completion handler from firing *after* a timeout had already been fired
-                return
-            }
-            window.clearTimeout(to)
-            return complete(data)
-        }
 
         if (!this.form_key) {
             //do JS-based validation only; but invoke the same callbacks and whatnot the same as before.
-            this.doh_server.verify(data, completion_handler)
+            this.doh_server.verify(data, completion_handler) //FIXME - completion_handler is gone! pass timeout?
         } else {
             //do server-side validation via GoodForms
-            JSONP({
-                url: HOST+'/'+url,
-                data: data,
-                success: completion_handler,
-                error: () => completion_handler({status: "ERROR", message: "Server Error"})
+            const req = new XMLHttpRequest()
+            req.open("POST", HOST+'/'+url,true)
+            req.setRequestHeader('accept', 'application/json')
+            req.setRequestHeader('content-type','application/json')
+            req.timeout = this.timeout
+
+            req.addEventListener('error',function (event) {
+                complete({status: "ERROR", message: "Server Error"})
             })
+            req.addEventListener('timeout', function () {
+                complete({status: "ERROR", message: "Timeout"})
+            })
+            req.addEventListener('abort',function () {
+                complete({status: "ERROR", message: "Aborted"})
+            })
+
+            req.addEventListener('load', function (event) {
+                try {
+                    var results = JSON.parse(req.responseText)
+                } catch (error) {
+                    complete({status: "ERROR", message: "Invalid JSON response"})
+                    return
+                }
+                complete(results)
+            })
+            req.send(JSON.stringify(data))
         }
 
     }

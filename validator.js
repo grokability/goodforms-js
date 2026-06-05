@@ -3,8 +3,9 @@ import resolver from "./resolver"
 
 export default class Validator {
 
-    constructor(doh_server) {
+    constructor(doh_server,timeout) {
         this.doh_server = new resolver(doh_server)
+        this.timeout = timeout
     }
 
     verify(data, completion_func) {
@@ -37,6 +38,6 @@ export default class Validator {
                     }
                 })
             }
-        })
+        },this.timeout) // *** NOTE*** timeout is the last parameter! Unintuitive!
     }
 }
