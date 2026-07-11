@@ -34,7 +34,6 @@
   "author": "bwetherington@grokability.com",
   "license": "MIT-0",
   "dependencies": {
-    "browser-jsonp": "^1.1.5",
     "micromodal": "^0.4.6",
     "style-inject": "^0.3.0"
   },

@@ -5,10 +5,11 @@ export default class Resolver {
         this.doh_server = doh_server
     }
 
-    lookup(type, name, callback) {
+    lookup(type, name, callback,timeout) {
         const req = new XMLHttpRequest();
         req.open("GET", this.doh_server+"?name="+encodeURIComponent(name)+"&type="+encodeURIComponent(type),true);
         req.setRequestHeader('accept', 'application/dns-json')
+        req.timeout = timeout
         req.addEventListener('load', function (event) {
             try {
                 var results = JSON.parse(req.responseText)
@@ -20,6 +21,9 @@ export default class Resolver {
         })
         req.addEventListener('error',function (event) {
             callback(null, new Error('DNS Error'))
+        })
+        req.addEventListener('timeout',function () {
+            callback(null, new Error("DNS Lookup timeout"))
         })
         req.send()
     }
