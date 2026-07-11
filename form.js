@@ -454,7 +454,20 @@ export default class Form {
             this.doh_server.verify(data, completion_handler) //FIXME - completion_handler is gone! pass timeout?
         } else {
             //do server-side validation via GoodForms
-            const req = new XMLHttpRequest()
+            let req = null
+            if(XMLHttpRequest) {
+                req = new XMLHttpRequest()
+            } else if(window.ActiveXObject) {
+                try {
+                    req = new ActiveXObject("Msxml2.XMLHTTP")
+                } catch (e) {
+                    try {
+                        req = new ActiveXObject("Microsoft.XMLHTTP")
+                    } catch (e) {
+                        //silently 'eat' error
+                    }
+                }
+            }
             req.open("POST", HOST+'/'+url,true)
             req.setRequestHeader('accept', 'application/json')
             req.setRequestHeader('content-type','application/json')
