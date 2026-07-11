@@ -1,7 +1,8 @@
-import buble from 'rollup-plugin-buble'
+import buble from '@rollup/plugin-buble'
 import postcss from 'rollup-plugin-postcss'
 import replace from '@rollup/plugin-replace'
 import html from 'rollup-plugin-html'
+import polyfill from 'rollup-plugin-polyfill'
 
 import { nodeResolve } from '@rollup/plugin-node-resolve'
 import commonjs from '@rollup/plugin-commonjs'
@@ -29,6 +30,8 @@ export default {
       'preventAssignment': false,
       'process.env.NODE_ENV': process.env.SNIPPET_ENV == "production" ? JSON.stringify('production') : JSON.stringify('development'),
     }),
+        polyfill(['core-js/actual'],
+            {sourceMap: true, method:  "import"}),
     postcss({
       inject: false
     }),

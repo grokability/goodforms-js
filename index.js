@@ -1,8 +1,13 @@
+import 'core-js/actual/object/define-property'
+import 'core-js/actual/array/from'; /// these end up being HUGE - gotta be another way
+console.warn("okay, that corejs thing happened");
+// import 'core-js/actual'
+
 import auto from "./auto"
 import log from "./logging"
 import Form from "./form"
 import { duplicate } from "./utils.js"
-
+import "./json2"
 
 export default function (form_key, options) {
     if(options.debug) {
