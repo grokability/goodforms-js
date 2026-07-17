@@ -20,8 +20,8 @@ export default {
     //intro: "var HOST = '"+process.env.SERVERNAME+"'" //jesus fucking h christ what a goddamned fucking disaster this was <---
   },
   watch: {
-    include: '*.js'
-    // clearScreen: false
+    include: ['*.js','*.css','*.mjs','*.html'],
+    clearScreen: false
   },
   plugins: [      
     commonjs(),
@@ -30,14 +30,19 @@ export default {
       'preventAssignment': false,
       'process.env.NODE_ENV': process.env.SNIPPET_ENV == "production" ? JSON.stringify('production') : JSON.stringify('development'),
     }),
-        polyfill(['core-js/actual'],
-            {sourceMap: true, method:  "import"}),
     postcss({
-      inject: false
+      inject: false,
+      minimize: process.env.SNIPPET_ENV == "production" ? true : false
     }),
     html({
-      include: '**/*.html'
+      include: '**/*.html',
+      htmlMinifierOptions: {
+        preset: process.env.SNIPPET_ENV == "production" ? "comprehensive" : null
+      }
     }),
-    buble()
+    buble({
+      targets: {ie: 6},
+      transforms: { dangerousForOf: true }
+    })
   ]
 }

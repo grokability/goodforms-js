@@ -1,7 +1,3 @@
-import 'core-js/actual/object/define-property'
-import 'core-js/actual/array/from'; /// these end up being HUGE - gotta be another way
-console.warn("okay, that corejs thing happened");
-// import 'core-js/actual'
 
 import auto from "./auto"
 import log from "./logging"
