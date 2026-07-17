@@ -2,7 +2,7 @@
 //var Goodforms = require('./prod-verify.js')
 //var Goodforms = require('./index.js'); //kinda works, but throws some errors.
 
-var GF2 = require('./dist/dev-verify.js'); // fails, because there's no such thing as 'window'
+import GF2 from './dist/dev-verify.js';
 console.log("Ehllo!");
 
 try {

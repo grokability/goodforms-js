@@ -6,7 +6,7 @@ import { duplicate } from "./utils.js"
 import "./json2"
 
 export default function (form_key, options) {
-    if(options.debug) {
+    if(options && options.debug) {
         log.debug_enabled = options.debug
     }
     log.verbose("MAIN INIT ROUTINE RUNNING!")
