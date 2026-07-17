@@ -1,7 +1,6 @@
 
 import log from "./logging"
 import { is_array, is_function, duplicate } from "./utils"
-import JSONP from "browser-jsonp"
 
 import { modal, update_hidden_fields} from "./visuals" //commented-out: tooltip
 import { tooltip } from "./tooltip"
@@ -23,7 +22,7 @@ const options_hash = {
     email_field: "DOMNode",
     form: "DOMNodeOrBoolean",
     submit_button: "DOMNodeOrArrayOfDOMNodes",
-    debug: "boolean",
+    debug: "BooleanOrVerbose",
     onGood: "function",
     onBad: "function",
     onChallenge: "function",
@@ -38,11 +37,11 @@ const visuals_all_off = {good:false, bad:false, challenge:false}
 
 export default class Form {
     constructor(options) {
-        log.debug("Invoking Class constructor!")
-        log.debugdir(options)
+        log.verbose("Invoking Class constructor!")
+        log.verbosedir(options)
         
         for(let key in options) {
-            log.debug("Setting: "+key+" to "+options[key])
+            log.verbose("Setting: "+key+" to "+options[key])
             //this[key] = options[key] //this will initialize all the callbacks, btw. Even if 'manual' is turned on! Do we...want that? TODO
             if(!this.unwrap_assign(key, options[key])) {
                 //bail out if any options weren't assignable
@@ -52,13 +51,15 @@ export default class Form {
         if(!this.doh_json_server) {
             this.doh_json_server = 'https://cloudflare-dns.com/dns-query'
         }
-        this.doh_server = new validator(this.doh_json_server)
 
         if(!this.timeout) {
             this.timeout = 15000 // we have been seeing some invalid emails get detected in 11 seconds, so this _should_ be enough room
         } else {
             this.timeout = 1000 * this.timeout //timeout was in seconds, but window.setTimeout() is in milliseconds
         }
+
+        this.doh_server = new validator(this.doh_json_server,this.timeout)
+
         if(this.manual) {
             //bail out of the rest of setup for manual-mode
             log.debug("Manual mode selected; exiting setup")
@@ -68,20 +69,20 @@ export default class Form {
             return log.error("No Email Field set!")
         }
         if(typeof this.form == "undefined" || this.form === true ) { // 'true' is just an explicit way of saying 'automatically figure out what form this lives in'
-            log.debug("Trying to guess Form value")
+            log.verbose("Trying to guess Form value")
             //try and guess form from email field's 'form' property
             this.form = this.email_field.form
-            log.debug("Picked: "+this.form)
+            log.verbose("Picked: "+this.form)
         }
         if(!this.form && this.form !== false) { // 'false' means "don't mess with the form, or maybe there isn't one"
             return log.error("Could not determine Form!")
         }
         if(this.form && !this.submit_button && this.submit_button !== false) { //'false' means "don't disable submit buttons"
-            log.debug("Trying to find submit buttons...")
+            log.verbose("Trying to find submit buttons...")
             let submit_buttons=[]
             for(let i=0; i < this.form.elements.length; i++) {
                 let element = this.form.elements[i]
-                log.debug("Checking element: "+element+" - nodeName: '"+element.nodeName+"' Type: '"+element.type+"'")
+                log.verbose("Checking element: "+element+" - nodeName: '"+element.nodeName+"' Type: '"+element.type+"'")
                 if((element.nodeName == "INPUT" && element.type == "submit") || (element.nodeName == "BUTTON" && element.type != "reset" && element.type != "button")) {
                     log.debug("Found a submit button")
                     submit_buttons.push(element)
@@ -129,6 +130,7 @@ export default class Form {
                     this.visuals = duplicate(visuals_all_on) //any missing keys should default to 'on' (true)
                     for(var key in element) {
                         if(!visuals_all_on[key]) { //if the 'visuals_all_on' constant doesn't have 'true' for this, this thing has unneeded keys
+                            log.error(name+" key "+key+" was unexpected")
                             return false
                         }
                         this.visuals[key] = element[key]
@@ -137,6 +139,7 @@ export default class Form {
                     //now make sure to set default 'true' for anything missed.
                     return true
                 }
+                log.error(name+" is incorrect type - got:"+typeof(element))
                 return false
                 break
 
@@ -148,6 +151,14 @@ export default class Form {
                     return this.unwrap_domnode(name,element,false)
                 }
                 break
+
+            case "BooleanOrVerbose":
+                if(typeof element === "boolean" || (typeof element === "string" && element === "verbose")) {
+                    return true;
+                } else {
+                    log.error('Wanted either boolean true or false, or the string "verbose" for key '+name)
+                    return false
+                }
             
             default:
                 if(typeof element == options_hash[name]) {
@@ -164,7 +175,7 @@ export default class Form {
         // if it's a jquery element, return the real DOM element underneath.
         // if it's still bad, error.
         if(typeof(element) === 'object' && element['jquery'] && element['get']) {
-            log.debug("jQuery-like object found for "+name)
+            log.verbose("jQuery-like object found for "+name)
             if(element.length == 0 ) {
                 log.error("No elements found in jQuery selector for "+name)
                 return false
@@ -208,7 +219,7 @@ export default class Form {
             this[name] = element
             return true
         }
-        log.debug("Unknown element type passed for "+name+": "+typeof(element)+", and its prototype is: "+(element['prototype'] ? element.prototype : '<unknown>')+", and its source: "+(element && element['prototype'] && element['prototype']['toSource'] ? element.prototype.toSource() : '<unavailable>'))
+        log.error("Unknown element type passed for "+name+": "+typeof(element)+", and its prototype is: "+(element['prototype'] ? element.prototype : '<unknown>')+", and its source: "+(element && element['prototype'] && element['prototype']['toSource'] ? element.prototype.toSource() : '<unavailable>'))
         return false
     }
 
@@ -228,7 +239,7 @@ export default class Form {
         if(this.form) {
             let old_onsubmit = this.form.onsubmit
             this.form.onsubmit = (event) => {
-                log.debug("On Submit handler firing!")
+                log.verbose("On Submit handler firing!")
                 var results
                 if(old_onsubmit) {
                     results = old_onsubmit(event) //TODO - confusing, *their* old onsubmit handler fires *first*?
@@ -254,9 +265,9 @@ export default class Form {
     set_submit_button_disabled(state) {
         this.submittable = !state // if disabled == true, submittable = false; if disabled == false, submittable = true
         if(this.submit_button) {
-            log.debug("Trying to disable submit button...")
+            log.verbose("Trying to change submit button 'disabled' state to: "+state)
             if(is_array(this.submit_button)) {
-                log.debug("Submit button IS ARRAY")
+                log.verbose("Submit button IS ARRAY")
                 for(let x in this.submit_button) {
                     this.submit_button[x].disabled = state
                 }
@@ -295,7 +306,7 @@ export default class Form {
     }
 
     fire_hooks(name, behavior, visuals, ...params) {
-        log.debug("Firing hooks for: "+name)
+        log.verbose("Firing hooks for: "+name)
         if(this.manual) {
             return
         }
@@ -370,8 +381,8 @@ export default class Form {
                     return
                 }
                 this.challenge(this.email_field.value, challenge_key, (results) => {
-                    log.debug("Challenge results are: ")
-                    log.debugdir(results)
+                    log.verbose("Challenge results are: ")
+                    log.verbosedir(results)
                     if(results.status == "ACCEPTED") {
                         this.modal.pin_input()
                         this.modal.set_modal_action( () => {
@@ -386,7 +397,7 @@ export default class Form {
                                      * their hooks fire correctly. But also, we *do* want to update the checksums and all the
                                      * other default behavior of a 'good' verification
                                      */
-                                    this.ongood_handler(response.status, response.checksum)
+                                    this.ongood_handler(response.status, response.checksum) //FIXME - that's supposed to be a 'detailed status' - not just GOOD
                                 } else {
                                     this.modal.bad_pin()
                                 }
@@ -417,9 +428,9 @@ export default class Form {
         if(this.submittable && this.email_field.value === this.verifying) {
             return true
         }
-        log.debug("Cannot submit form - submittable? "+this.submittable+" our field value? "+this.email_field.value+" what we're verifying? "+this.verifying)
+        log.verbose("Cannot submit form - submittable? "+this.submittable+" our field value? "+this.email_field.value+" what we're verifying? "+this.verifying)
         if(this.email_field.value !== this.verifying) {
-            log.debug("sending new verification!")
+            log.verbose("sending new verification!")
             this.verify(this.email_field.value, (results) => {  //FIXME - this could double-verify!
                 if(this.submittable && this.form) { //don't directly inspect 'results', assume the onBlah handlers will update 'submittable'
                     this.form.submit()
@@ -437,47 +448,102 @@ export default class Form {
 
     jsp(url, data, complete) {
         data.form_key = this.form_key //this mutates the source; but we don't care for our purposes
-        let timed_out = false
-
-        let to = window.setTimeout(() => {
-            // have to fire completion_handler *first*, but *then* immediately set timed_out
-            timed_out = true
-            return complete({status: "ERROR", message: "Timeout"})
-        }, this.timeout)
-
-        let completion_handler = (data) => {
-            //fires on success *or* on failure
-            if(timed_out) { //prevent completion handler from firing *after* a timeout had already been fired
-                return
-            }
-            window.clearTimeout(to)
-            return complete(data)
-        }
 
         if (!this.form_key) {
             //do JS-based validation only; but invoke the same callbacks and whatnot the same as before.
-            this.doh_server.verify(data, completion_handler)
+            this.doh_server.verify(data, complete) // TODO - pass timeout?
         } else {
             //do server-side validation via GoodForms
-            JSONP({
-                url: HOST+'/'+url,
-                data: data,
-                success: completion_handler,
-                error: () => completion_handler({status: "ERROR", message: "Server Error"})
-            })
+            let req = null
+            if(typeof XMLHttpRequest !== "undefined") {
+                req = new XMLHttpRequest()
+            } else if(window.ActiveXObject) {
+                log.verbose("trying old-school way");
+                try {
+                    req = new ActiveXObject("Msxml2.XMLHTTP")
+                } catch (e) {
+                    log.verbose("trying the other weird old way?")
+                    try {
+                        req = new ActiveXObject("Microsoft.XMLHTTP")
+                    } catch (e) {
+                        //silently 'eat' error
+                        log.error("no XMLHttpRequest available...");
+                    }
+                }
+                log.verbose("Setting timeouts");
+                if(typeof req.setTimeouts !== "undefined") {
+                    log.verbose("Setting timeotus for really reals!")
+                    req.setTimeouts(this.timeout,this.timeout,this.timeout,this.timeout)
+                } else {
+                    log.verbose("No timeouts we can set :(")
+                }
+                log.verbose("Timeouts set!");
+                // log.verbose("URL we're going to try to set is: "+window.location.href)
+                // req.setRequestHeader("origin",window.location.href)
+
+                req.onreadystatechange = () => {
+                    if(req.readyState == 4) {
+                        log.verbose("Ready state is up!")
+                        log.verbose("Actual state of the thing is: "+req.status)
+                        log.verbose("Status text? "+req.statusText)
+                        let raw_results = req.responseText
+                        log.verbose("Response text?"+raw_results)
+                        try {
+                            var results = JSON.parse(raw_results)
+                            log.verbose("Parsed Result: "+results)
+                        } catch (error) {
+                            log.verbose("Actual text: "+req.responseText)
+                            complete({status: "ERROR", message: "Invalid JSON response"})
+                            return
+                        }
+                        complete(results)
+                    }
+                }
+            }
+            req.open("POST", HOST+'/'+url,true)
+            req.setRequestHeader('accept', 'application/json')
+            req.setRequestHeader('content-type','application/json')
+            if(typeof req.timeout !== "undefined") {
+                req.timeout = this.timeout
+            }
+
+            if(typeof req.addEventListener !== "undefined") {
+                req.addEventListener('error',function (event) {
+                    complete({status: "ERROR", message: "Server Error"})
+                })
+                req.addEventListener('timeout', function () {
+                    complete({status: "ERROR", message: "Timeout"})
+                })
+                req.addEventListener('abort',function () {
+                    complete({status: "ERROR", message: "Aborted"})
+                })
+
+                req.addEventListener('load', function (event) {
+                    try {
+                        var results = JSON.parse(req.responseText)
+                    } catch (error) {
+                        complete({status: "ERROR", message: "Invalid JSON response"})
+                        return
+                    }
+                    complete(results)
+                })
+            }
+            log.verbose("Stringified data is: "+JSON.stringify(data))
+            req.send(JSON.stringify(data))
         }
 
     }
 
     verify(email, callback) {
-        log.debug("VERIFY low-level method invoked!")
+        log.verbose("VERIFY low-level method invoked!")
         this.jsp("verify", {email: email},
             (data) => {
-                if(data.error) { //out-of-band type of error, or does this *never* fire?
+                log.verbose(data)
+                if(typeof data.error !== "undefined") { //out-of-band type of error, or does this *never* fire?
                     log.error(data.error)
                 }
                 let detailed_status = null
-                if(data && data.checksum) {
+                if(data && data.checksum) { // FIXME - grabbing detailed status via SPLIT
                     detailed_status = data.checksum.split(";")[2] //what happens if there's a semicolon in the email? Well, it's gonna mess up.
                 }
 

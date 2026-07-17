@@ -1,13 +1,13 @@
-import buble from 'rollup-plugin-buble'
+import buble from '@rollup/plugin-buble'
 import postcss from 'rollup-plugin-postcss'
 import replace from '@rollup/plugin-replace'
 import html from 'rollup-plugin-html'
 
-const resolve = require('rollup-plugin-node-resolve')
-const commonjs = require('rollup-plugin-commonjs')
+import { nodeResolve } from '@rollup/plugin-node-resolve'
+import commonjs from '@rollup/plugin-commonjs'
 
 
-module.exports = {
+export default {
   input: 'index.js',
   output: {
     file: "dist/"+(process.env.SNIPPET_ENV == "production" ? 'prod-verify.js': 'dev-verify.js'),
@@ -15,25 +15,31 @@ module.exports = {
     name: 'Goodforms',
     sourcemap: 'inline',
     intro: process.env.SNIPPET_ENV == "production" ? "var HOST = 'https://api.goodforms.com'" : "var HOST = 'http://"+process.env.SERVERIP+":8000'"
-    //                                                                                                                                        //and I need to find out how to dynamically look this up! it was .4 before!
-    //intro: "var HOST = '"+process.env.SERVERNAME+"'" //jesus fucking h christ what a goddamned fucking disaster this was <---
   },
   watch: {
-    include: '*.js'
-    // clearScreen: false
+    include: ['*.js','*.css','*.mjs','*.html','*.less'], // WARNING - .css files are *NOT* watched!! I don't know why
+    clearScreen: false
   },
   plugins: [      
     commonjs(),
-    resolve(),
+    nodeResolve(),
     replace({
+      'preventAssignment': false,
       'process.env.NODE_ENV': process.env.SNIPPET_ENV == "production" ? JSON.stringify('production') : JSON.stringify('development'),
     }),
     postcss({
-      inject: false
+      inject: false,
+      minimize: process.env.SNIPPET_ENV == "production" ? true : false,
     }),
     html({
-			include: '**/*.html'
-		}),
-    buble()
+      include: '**/*.html',
+      htmlMinifierOptions: {
+        preset: process.env.SNIPPET_ENV == "production" ? "comprehensive" : null
+      }
+    }),
+    buble({
+      targets: {ie: 6},
+      transforms: { dangerousForOf: true }
+    })
   ]
 }
