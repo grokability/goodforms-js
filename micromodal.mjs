@@ -216,7 +216,6 @@ const MicroModal = (() => {
         }
       }
       // const nodesWhichAreNotCloseTargets = focusableNodes.filter(node => {
-      //   console.dir(node) // FIXME TOO!!!!
       //   return !node.hasAttribute(this.config.closeTrigger)
       // })
 

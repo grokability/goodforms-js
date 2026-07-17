@@ -6,7 +6,7 @@ import { duplicate } from "./utils.js"
 import "./json2"
 
 export default function (form_key, options) {
-    if(options && options.debug) {
+    if(options && typeof options == "object" && options.debug) {
         log.debug_enabled = options.debug
     }
     log.verbose("MAIN INIT ROUTINE RUNNING!")
@@ -23,7 +23,7 @@ export default function (form_key, options) {
         log.debug('Form key was not set (root-level)')
     }
     log.debug("CREATING NEW FORM WITH FORMKEY: "+form_key)
-    log.verbosedir(options) //FIXME - verbosedir?
+    log.verbosedir(options)
     let my_opts = duplicate(options)
     // if form_key was passed as part of the options, don't try and set it
     // but if it wasn't, and you don't even *have* a form key - you should also try not to set it.

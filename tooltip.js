@@ -9,7 +9,6 @@ export class tooltip {
 
 
     show(contents) {
-        console.error("Showing tooltip?") // FIXME!!!
         ensure_css()
         document.body.insertAdjacentHTML('beforeend', tooltip_html)
         this.tooltip = document.body.lastChild
