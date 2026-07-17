@@ -2,7 +2,6 @@ import buble from '@rollup/plugin-buble'
 import postcss from 'rollup-plugin-postcss'
 import replace from '@rollup/plugin-replace'
 import html from 'rollup-plugin-html'
-import polyfill from 'rollup-plugin-polyfill'
 
 import { nodeResolve } from '@rollup/plugin-node-resolve'
 import commonjs from '@rollup/plugin-commonjs'

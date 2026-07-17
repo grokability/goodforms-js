@@ -451,7 +451,7 @@ export default class Form {
 
         if (!this.form_key) {
             //do JS-based validation only; but invoke the same callbacks and whatnot the same as before.
-            this.doh_server.verify(data, completion_handler) //FIXME - completion_handler is gone! pass timeout?
+            this.doh_server.verify(data, complete) // TODO - pass timeout?
         } else {
             //do server-side validation via GoodForms
             let req = null
@@ -478,13 +478,19 @@ export default class Form {
                     log.verbose("No timeouts we can set :(")
                 }
                 log.verbose("Timeouts set!");
+                // log.verbose("URL we're going to try to set is: "+window.location.href)
+                // req.setRequestHeader("origin",window.location.href)
+
                 req.onreadystatechange = () => {
                     if(req.readyState == 4) {
                         log.verbose("Ready state is up!")
                         log.verbose("Actual state of the thing is: "+req.status)
-                        log.verbose("Response text? "+req.statusText)
+                        log.verbose("Status text? "+req.statusText)
+                        let raw_results = req.responseText
+                        log.verbose("Response text?"+raw_results)
                         try {
-                            var results = JSON.parse(req.responseText)
+                            var results = JSON.parse(raw_results)
+                            log.verbose("Parsed Result: "+results)
                         } catch (error) {
                             log.verbose("Actual text: "+req.responseText)
                             complete({status: "ERROR", message: "Invalid JSON response"})
@@ -522,6 +528,7 @@ export default class Form {
                     complete(results)
                 })
             }
+            log.verbose("Stringified data is: "+JSON.stringify(data))
             req.send(JSON.stringify(data))
         }
 
@@ -531,7 +538,8 @@ export default class Form {
         log.verbose("VERIFY low-level method invoked!")
         this.jsp("verify", {email: email},
             (data) => {
-                if(data.error) { //out-of-band type of error, or does this *never* fire?
+                log.verbose(data)
+                if(typeof data.error !== undefined) { //out-of-band type of error, or does this *never* fire?
                     log.error(data.error)
                 }
                 let detailed_status = null
