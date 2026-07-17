@@ -38,6 +38,7 @@
     "@rollup/plugin-commonjs": "^29.0.0",
     "@rollup/plugin-node-resolve": "^16.0.3",
     "@rollup/plugin-replace": "^6.0.3",
+    "less": "^4.6.7",
     "regenerator-runtime": "^0.13.7",
     "rollup": "^4.54.0",
     "rollup-plugin-html": "git+https://git@github.com/grokability/rollup-plugin-html.git",

@@ -265,7 +265,7 @@ export default class Form {
     set_submit_button_disabled(state) {
         this.submittable = !state // if disabled == true, submittable = false; if disabled == false, submittable = true
         if(this.submit_button) {
-            log.verbose("Trying to disable submit button...")
+            log.verbose("Trying to change submit button 'disabled' state to: "+state)
             if(is_array(this.submit_button)) {
                 log.verbose("Submit button IS ARRAY")
                 for(let x in this.submit_button) {
@@ -539,7 +539,7 @@ export default class Form {
         this.jsp("verify", {email: email},
             (data) => {
                 log.verbose(data)
-                if(typeof data.error !== undefined) { //out-of-band type of error, or does this *never* fire?
+                if(typeof data.error !== "undefined") { //out-of-band type of error, or does this *never* fire?
                     log.error(data.error)
                 }
                 let detailed_status = null

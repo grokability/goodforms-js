@@ -15,11 +15,9 @@ export default {
     name: 'Goodforms',
     sourcemap: 'inline',
     intro: process.env.SNIPPET_ENV == "production" ? "var HOST = 'https://api.goodforms.com'" : "var HOST = 'http://"+process.env.SERVERIP+":8000'"
-    //                                                                                                                                        //and I need to find out how to dynamically look this up! it was .4 before!
-    //intro: "var HOST = '"+process.env.SERVERNAME+"'" //jesus fucking h christ what a goddamned fucking disaster this was <---
   },
   watch: {
-    include: ['*.js','*.css','*.mjs','*.html'],
+    include: ['*.js','*.css','*.mjs','*.html','*.less'], // WARNING - .css files are *NOT* watched!! I don't know why
     clearScreen: false
   },
   plugins: [      
@@ -31,7 +29,7 @@ export default {
     }),
     postcss({
       inject: false,
-      minimize: process.env.SNIPPET_ENV == "production" ? true : false
+      minimize: process.env.SNIPPET_ENV == "production" ? true : false,
     }),
     html({
       include: '**/*.html',

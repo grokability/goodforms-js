@@ -1,6 +1,6 @@
 
 import MicroModal from './micromodal.mjs'
-import micromodal_css from './micromodal.css'
+import goodforms_css from './goodforms.less'
 
 import styleInject from 'style-inject'
 
@@ -19,6 +19,16 @@ let node_creator = function (name, attributes, text) {
         elem.appendChild(document.createTextNode(text))
     }
     return elem
+}
+
+export function ensure_css() {
+    if(typeof window.goodforms_css === 'undefined') {
+        log.verbose("Ensuring CSS is added!!!")
+        styleInject(goodforms_css, {insertAt: 'top'}) //insert at top so customer-generated styles will override
+        window.goodforms_css = true
+    } else {
+        log.verbose("CSS has already been added, doing nothing")
+    }
 }
 
 export function update_hidden_fields(form, checksum, status) {
@@ -44,10 +54,7 @@ export class modal {
 
     show(challenge_key, message, button_callback) {
         this.message = message
-        if(!this.css) {
-            styleInject(micromodal_css, {insertAt: 'top'}) //insert at top so customer-generated styles will override
-            this.css = true
-        }
+        ensure_css()
         this.get_modal(challenge_key)
         this.set_modal_action(button_callback)
         this.display_challenge_modal(challenge_key)
