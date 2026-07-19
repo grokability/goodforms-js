@@ -1,0 +1,16 @@
+/*.goodforms_tooltip {*/
+/*    font-weight: bold;*/
+/*    font: 14px/35px Arial, sans-serif;*/
+/*    border: 1px solid dimgrey;*/
+/*    background: #f3f2f2;*/
+/*    border-radius: 2px;*/
+/*    padding: 10px;*/
+/*    line-height: 10px;*/
+/*    color: #d21919;*/
+/*    margin: 4px;*/
+/*    z-index: 2147483647;*/
+/*    position: absolute;*/
+/*    visibility: visible;*/
+/*}*/
+
+/* this *actually* is part of the Modal stuff, not the tooltip. But whatever. */

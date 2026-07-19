@@ -1,4 +1,29 @@
 .goodforms_modal {
   @import (less) "./micromodal.css";
 }
-@import (inline) "./tooltip.css";
+//@import (inline) "./general.css";
+
+// support for some custom styling for modals
+span.goodforms_invalid_pin {
+  color: red;
+}
+
+.goodforms_valid_email {
+  color: #177305;
+  transition: visibility 0s 2s, opacity 2s linear;
+  /*opacity: 0;*/
+  /*visibility: hidden;*/
+}
+
+// valid/invalid/loading stuff
+input.goodforms_valid_email.goodforms_svg_support {
+  background: data-uri("check.svg") no-repeat right 0.5em center / 1em 1em;
+}
+
+input.goodforms_invalid_email.goodforms_svg_support {
+  background: data-uri("x.svg") no-repeat right 0.5em center / 1em 1em;
+}
+
+input.goodforms_loading_email.goodforms_svg_support {
+  background: data-uri("spinner.svg") no-repeat right 0.5em center / 1em 1em;
+}

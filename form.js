@@ -2,8 +2,8 @@
 import log from "./logging"
 import { is_array, is_function, duplicate } from "./utils"
 
-import { modal} from "./visuals"
-import { tooltip } from "./tooltip"
+import {ensure_css, modal} from "./visuals"
+// import { tooltip } from "./tooltip"
 import DnsValidator from "./dns_validator";
 import xhr from "./xhr.js"
 
@@ -94,7 +94,12 @@ export default class Form {
         }
         this.initialize_dom() // this calls this.disable_submits(), which sets this.submittable = false
         this.modal = new modal(this.email_field)
-        this.tooltip = new tooltip(this.email_field) //this is lightweight and doesn't do anything until you actually *show* it
+        if(!!document.createElementNS &&
+            !!document.createElementNS("http://www.w3.org/2000/svg", "svg").createSVGRect) {
+            this.email_field.className += " goodforms_svg_support"
+        }
+        // FIXME - add the SVG feature detection here
+        // this.tooltip = new tooltip(this.email_field) //this is lightweight and doesn't do anything until you actually *show* it
         if(this.email_field.value) {
             log.debug("Email field was already filled out, so we're going to manually fire the onchange_handler")
             this.onchange_handler()
@@ -296,6 +301,29 @@ export default class Form {
         this.form.appendChild(new_elem)
     }
 
+    set_state(status) {
+        ensure_css()
+        let previous_classes = this.email_field.className.split(" ")
+        let gf_classes = ["goodforms_valid_email", "goodforms_invalid_email","goodforms_loading_email"]
+        let new_classes = []
+        for(let className of previous_classes) {
+            var found = 0;
+            for(let gf_class of gf_classes) {
+                if(gf_class == className) {
+                    found++
+                    break;
+                }
+            }
+            if(!found) {
+                new_classes.unshift(className)
+            }
+        }
+        if(status) {
+            new_classes.unshift("goodforms_" + status + "_email")
+        }
+        this.email_field.className = new_classes.join(" ")
+    }
+
 
     // Event-management/hook-management helper methods
 
@@ -361,7 +389,9 @@ export default class Form {
         }, 
         () => {
             if(this.visuals.bad) {
-                this.tooltip.show(message)
+                //this.email_field.className
+                //this.tooltip.show(message)
+                this.set_state("invalid")
             }
         },
         detailed_status,
@@ -378,7 +408,8 @@ export default class Form {
         },
         () => {
             if(this.visuals.good) {
-                this.tooltip.hide() // TODO - is this right?
+                // this.tooltip.hide() // TODO - is this right?
+                this.set_state("valid")
             }    
         },
         detailed_status,
@@ -435,7 +466,7 @@ export default class Form {
     onerror_handler() {
         this.fire_hooks('onError',() => {
             log.debug("Error detected?")
-            this.tooltip.remove()
+            // this.tooltip.remove()
             this.enable_submits()
         },() => {
             log.debug("No default visuals for error?")
@@ -483,6 +514,7 @@ export default class Form {
 
     verify(email, callback) {
         log.verbose("VERIFY low-level method invoked!")
+        this.set_state("loading")
         this.jsp("verify", {email: email},
             (data) => {
                 log.verbose(data)
