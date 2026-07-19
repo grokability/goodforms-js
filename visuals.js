@@ -10,17 +10,6 @@ import bad_address_html from './bad_address.html'
 import pin_input_html from './pin_input.html'
 import bad_pin_html from './bad_pin.html'
 
-let node_creator = function (name, attributes, text) {
-    var elem = document.createElement(name)
-    for (var key in attributes) {
-        elem.setAttribute(key,attributes[key])
-    }
-    if(text) {
-        elem.appendChild(document.createTextNode(text))
-    }
-    return elem
-}
-
 export function ensure_css() {
     if(typeof window.goodforms_css === 'undefined') {
         log.verbose("Ensuring CSS is added!!!")
@@ -29,20 +18,6 @@ export function ensure_css() {
     } else {
         log.verbose("CSS has already been added, doing nothing")
     }
-}
-
-export function update_hidden_fields(form, checksum, status) {
-    insert_or_update_hidden('goodforms_checksum','goodforms_checksum',checksum, form)
-    insert_or_update_hidden('goodforms_status','goodforms_status',status, form)
-}
-
-let insert_or_update_hidden = function (name,id,value, form) {
-    var element = document.getElementById(id) //TODO - should we get by 'name' instead to better handle folks who put in their own challenge hidden field?
-    if(element) {
-        element.value = value
-        return
-    }
-    form.appendChild(node_creator('input', {'type': 'hidden','name': name,'value': value,'id': id}))
 }
 
 export class modal {

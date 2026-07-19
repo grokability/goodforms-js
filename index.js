@@ -6,19 +6,22 @@ import { duplicate } from "./utils.js"
 import "./json2"
 
 export default function (form_key, options) {
-    if(options && typeof options == "object" && options.debug) {
-        log.debug_enabled = options.debug
-    }
-    log.verbose("MAIN INIT ROUTINE RUNNING!")
+    //it's *tempting* to try and yank all of the debug_enabled stuff up _here_
+    //but we already do some juggling of the form_key and options a bit for
+    // the next few lines below, so best to keep it where it is :/
     if(typeof options === 'undefined') {
         // handle either Goodforms({blah:'blah',blah:'blah'})
         // or Goodforms()
         options = form_key
-        form_key = undefined // TODO: I *think* it might be cleaner to do 'undefined' here?
+        form_key = undefined
     }
     if(!options) {
         options = {}
     }
+    if(options.debug) {
+        log.debug_enabled = options.debug
+    }
+    log.verbose("MAIN INIT ROUTINE RUNNING!")
     if(!form_key && (!options['form_key'])) {
         log.debug('Form key was not set (root-level)')
     }
