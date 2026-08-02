@@ -34,7 +34,7 @@ In your HTML, add:
 
 ```html
 
-<script src='https://unpkg.com/goodforms@1.0.0'></script>
+<script src='https://unpkg.com/goodforms@2.0.0'></script>
 ```
 
 Then run, near the bottom of your page:
@@ -54,7 +54,7 @@ DNS JSON format.
 ## Manual Mode
 
 ```html
-<script src='https://unpkg.com/goodforms@1.0.0'></script>
+<script src='https://unpkg.com/goodforms@2.0.0'></script>
 ```
 
 Then, near the bottom of your page:
@@ -116,7 +116,7 @@ your .js code.
 
 Or you can try:
 ```js
-requirejs(['https://unpkg.com/goodforms@1.0.0'], function (Goodforms) {
+requirejs(['https://unpkg.com/goodforms@2.0.0'], function (Goodforms) {
     Goodforms('form_key', {debug: true}) //use as normal
 });
 ```
@@ -141,7 +141,7 @@ You still need, somewhere in your page:
 
 ```html
 
-<script src='https://unpkg.com/goodforms@1.0.0'></script>
+<script src='https://unpkg.com/goodforms@2.0.0'></script>
 ```
 
 At some point after your form is loaded, you can specifically attach to it by using:
