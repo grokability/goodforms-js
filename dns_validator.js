@@ -1,21 +1,24 @@
 
-import resolver from "./resolver"
+// import resolver from "./resolver"
 
-export default class Validator {
+import xhr from './xhr';
+
+export default class DnsValidator {
 
     constructor(doh_server,timeout) {
-        this.doh_server = new resolver(doh_server)
+        this.doh_server = doh_server
         this.timeout = timeout
     }
 
     verify(data, completion_func) {
-        let resolver = this.doh_server
         // TODO: do RFC-compliance check FIRST to spare the DNS server...
         let last_at = data.email.lastIndexOf('@')
         let domain = data.email.substring(last_at+1) //need to remove the '@' itself, of course
-        let username = data.email.substring(0,last_at)
-        resolver.lookup('MX', domain, function (results, error) {
-            if ( !results && error ) {
+        let dns_lookup = this.doh_server+"?name="+encodeURIComponent(domain)
+        let timeout = this.timeout //needed because the timeout gets consumed in other, temporary functions without 'this'
+        // let username = data.email.substring(0,last_at) // - unused
+        xhr(dns_lookup+"&type=MX",{},function (results) {
+            if ( !results && error ) { //FIXME - 'error'?
                 completion_func({status: 'ERROR', message: String(error)}) // I don't like this repeating.
                 return
             } // TODO: I think this actually *might* fit in a Promise implementation? We can certainly 'include' one
@@ -26,7 +29,7 @@ export default class Validator {
                 completion_func({status: 'GOOD'})
             } else {
                 // By RFC, if there is no MX record, we drop to A-record fallback
-                resolver.lookup('A', domain, function (a_results, a_error) {
+                xhr(dns_lookup+"&type=A",{}, function (a_results, a_error) {
                     if ( !a_results && a_error) { // SyntaxError, actually :/ (as above?)
                         completion_func({status: 'ERROR', message: String(a_error)}) // this is copypasta from above. Don't like.
                         return
@@ -36,8 +39,8 @@ export default class Validator {
                     } else {
                         completion_func({status: 'BAD', message: "Invalid Domain"}) //TODO - how to translate this?
                     }
-                })
+                },timeout, 'GET', 'application/dns-json')
             }
-        },this.timeout) // *** NOTE*** timeout is the last parameter! Unintuitive!
+        },timeout,'GET','application/dns-json')
     }
 }

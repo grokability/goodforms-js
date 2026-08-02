@@ -2,12 +2,10 @@
 import log from "./logging"
 import { is_array, is_function, duplicate } from "./utils"
 
-import { modal, update_hidden_fields} from "./visuals" //commented-out: tooltip
-import { tooltip } from "./tooltip"
-import validator from "./validator";
-
-// import { domainToUnicode } from "url"
-// import { stringify } from "querystring"
+import {ensure_css, modal} from "./visuals"
+// import { tooltip } from "./tooltip"
+import DnsValidator from "./dns_validator";
+import xhr from "./xhr.js"
 
 /************
  * The intention here is that we won't put any GUI stuff in here at all.
@@ -58,7 +56,7 @@ export default class Form {
             this.timeout = 1000 * this.timeout //timeout was in seconds, but window.setTimeout() is in milliseconds
         }
 
-        this.doh_server = new validator(this.doh_json_server,this.timeout)
+        this.doh_server = new DnsValidator(this.doh_json_server,this.timeout)
 
         if(this.manual) {
             //bail out of the rest of setup for manual-mode
@@ -96,7 +94,12 @@ export default class Form {
         }
         this.initialize_dom() // this calls this.disable_submits(), which sets this.submittable = false
         this.modal = new modal(this.email_field)
-        this.tooltip = new tooltip(this.email_field) //this is lightweight and doesn't do anything until you actually *show* it
+        if(!!document.createElementNS &&
+            !!document.createElementNS("http://www.w3.org/2000/svg", "svg").createSVGRect) {
+            this.email_field.className += " goodforms_svg_support"
+        }
+        // FIXME - add the SVG feature detection here
+        // this.tooltip = new tooltip(this.email_field) //this is lightweight and doesn't do anything until you actually *show* it
         if(this.email_field.value) {
             log.debug("Email field was already filled out, so we're going to manually fire the onchange_handler")
             this.onchange_handler()
@@ -277,6 +280,51 @@ export default class Form {
         }
     }
 
+    update_hidden_fields(checksum, status) {
+        this.insert_or_update_hidden('goodforms_checksum',checksum)
+        this.insert_or_update_hidden('goodforms_status',status)
+    }
+
+    insert_or_update_hidden(name,value) {
+        var possibles = this.form.elements //getElementsByName(name)
+        for (let possible in possibles) {
+            if(possible.name == name) {
+                possible.value = value
+                return
+            }
+        }
+        var new_elem = document.createElement('input')
+        let attributes = {'type': 'hidden','name': name,'value': value}
+        for (let key in attributes) {
+            new_elem.setAttribute(key,attributes[key])
+        }
+        this.form.appendChild(new_elem)
+    }
+
+    set_state(status) {
+        ensure_css()
+        let previous_classes = this.email_field.className.split(" ")
+        let gf_classes = ["goodforms_valid_email", "goodforms_invalid_email","goodforms_loading_email"]
+        let new_classes = []
+        for(let className of previous_classes) {
+            var found = 0;
+            for(let gf_class of gf_classes) {
+                if(gf_class == className) {
+                    found++
+                    break;
+                }
+            }
+            if(!found) {
+                new_classes.unshift(className)
+            }
+        }
+        if(status) {
+            new_classes.unshift("goodforms_" + status + "_email")
+        }
+        this.email_field.className = new_classes.join(" ")
+    }
+
+
     // Event-management/hook-management helper methods
 
     parse_event_handler_results(result, behavior, visuals, allow_func, params) {
@@ -341,7 +389,9 @@ export default class Form {
         }, 
         () => {
             if(this.visuals.bad) {
-                this.tooltip.show(message)
+                //this.email_field.className
+                //this.tooltip.show(message)
+                this.set_state("invalid")
             }
         },
         detailed_status,
@@ -349,15 +399,16 @@ export default class Form {
     }
 
     ongood_handler(detailed_status, checksum, message) {
+        log.verbose("Uh, detailed status is, uh: "+detailed_status)
         this.fire_hooks('onGood', () => {
             if(this.form) {
-                update_hidden_fields(this.form, checksum, status) //TODO: why is this struckthrough?
+                this.update_hidden_fields(checksum, detailed_status)
             }
             this.enable_submits()
         },
         () => {
             if(this.visuals.good) {
-                this.tooltip.hide()
+                this.set_state("valid")
             }    
         },
         detailed_status,
@@ -411,13 +462,13 @@ export default class Form {
         })
     } 
 
-     onerror_handler() {
+    onerror_handler() {
         this.fire_hooks('onError',() => {
             log.debug("Error detected?")
-            this.tooltip.remove()
+            // this.tooltip.remove()
             this.enable_submits()
         },() => {
-            log.debug("No default visuals for error?")
+            this.set_state() //clears spinner
         })
     }
 
@@ -454,88 +505,15 @@ export default class Form {
             this.doh_server.verify(data, complete) // TODO - pass timeout?
         } else {
             //do server-side validation via GoodForms
-            let req = null
-            if(typeof XMLHttpRequest !== "undefined") {
-                req = new XMLHttpRequest()
-            } else if(window.ActiveXObject) {
-                log.verbose("trying old-school way");
-                try {
-                    req = new ActiveXObject("Msxml2.XMLHTTP")
-                } catch (e) {
-                    log.verbose("trying the other weird old way?")
-                    try {
-                        req = new ActiveXObject("Microsoft.XMLHTTP")
-                    } catch (e) {
-                        //silently 'eat' error
-                        log.error("no XMLHttpRequest available...");
-                    }
-                }
-                log.verbose("Setting timeouts");
-                if(typeof req.setTimeouts !== "undefined") {
-                    log.verbose("Setting timeotus for really reals!")
-                    req.setTimeouts(this.timeout,this.timeout,this.timeout,this.timeout)
-                } else {
-                    log.verbose("No timeouts we can set :(")
-                }
-                log.verbose("Timeouts set!");
-                // log.verbose("URL we're going to try to set is: "+window.location.href)
-                // req.setRequestHeader("origin",window.location.href)
-
-                req.onreadystatechange = () => {
-                    if(req.readyState == 4) {
-                        log.verbose("Ready state is up!")
-                        log.verbose("Actual state of the thing is: "+req.status)
-                        log.verbose("Status text? "+req.statusText)
-                        let raw_results = req.responseText
-                        log.verbose("Response text?"+raw_results)
-                        try {
-                            var results = JSON.parse(raw_results)
-                            log.verbose("Parsed Result: "+results)
-                        } catch (error) {
-                            log.verbose("Actual text: "+req.responseText)
-                            complete({status: "ERROR", message: "Invalid JSON response"})
-                            return
-                        }
-                        complete(results)
-                    }
-                }
-            }
-            req.open("POST", HOST+'/'+url,true)
-            req.setRequestHeader('accept', 'application/json')
-            req.setRequestHeader('content-type','application/json')
-            if(typeof req.timeout !== "undefined") {
-                req.timeout = this.timeout
-            }
-
-            if(typeof req.addEventListener !== "undefined") {
-                req.addEventListener('error',function (event) {
-                    complete({status: "ERROR", message: "Server Error"})
-                })
-                req.addEventListener('timeout', function () {
-                    complete({status: "ERROR", message: "Timeout"})
-                })
-                req.addEventListener('abort',function () {
-                    complete({status: "ERROR", message: "Aborted"})
-                })
-
-                req.addEventListener('load', function (event) {
-                    try {
-                        var results = JSON.parse(req.responseText)
-                    } catch (error) {
-                        complete({status: "ERROR", message: "Invalid JSON response"})
-                        return
-                    }
-                    complete(results)
-                })
-            }
-            log.verbose("Stringified data is: "+JSON.stringify(data))
-            req.send(JSON.stringify(data))
+            // yeah, harder than it seems - move the xhr to the inside of the resolver
+            xhr(HOST+'/'+url, data,complete)
         }
 
     }
 
     verify(email, callback) {
         log.verbose("VERIFY low-level method invoked!")
+        this.set_state("loading")
         this.jsp("verify", {email: email},
             (data) => {
                 log.verbose(data)

@@ -24,6 +24,7 @@
     "watch": "SERVERIP=$(ifconfig en0|grep 'inet '|cut -d ' ' -f 2); echo \"SERVERIP IS: $SERVERIP\"; rollup -c --watch --environment SNIPPET_ENV:dev --environment SERVERIP:$SERVERIP",
     "version": "npm run production; git add dist/verify.js*; sed s/%VERSION%/$npm_package_version/ README_tempate.md > README.md; git add README.md",
     "compress": "uglifyjs --source-map -o dist/dev-verify.min.js dist/dev-verify.js",
+    "prod": "npm run production",
     "prodwatch": "SERVERNAME=https://api.goodforms.com rollup -c --watch --environment SNIPPET_ENV:production",
     "production": "SERVERNAME=https://api.goodforms.com rollup -c --environment SNIPPET_ENV:production && uglifyjs --source-map \"url='https://unpkg.com/goodforms@$npm_package_version/dist/verify.js.map',content=inline\" -o dist/verify.js dist/prod-verify.js"
   },
