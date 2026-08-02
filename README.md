@@ -1,3 +1,24 @@
+<!--
+Note that if you're looking at README.md, that file is *generated* from README_template.md - so do *not*
+directly edit README.md, or your changes will be lost.
+-->
+# Attributions
+
+Like most open-source packages, this one uses a lot of the work of other open-source package maintainers -
+
+ - This package uses [Fugue Icons](https://p.yusukekamiyamane.com), written by Yusuke Kamiyamane under a [Creative Commons License](http://creativecommons.org/licenses/by/3.0/).
+ - This also uses [Micromodal.js](https://micromodal.vercel.app), which uses the following license:
+
+> MIT License
+>
+> Copyright (c) 2017 Indrashish Ghosh
+>
+> Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+>
+> The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+>
+> THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 # Introduction
 
 Goodforms-js is a Javascript library that enables easy, browser-based validation of email addresses, by looking at the
@@ -13,7 +34,7 @@ In your HTML, add:
 
 ```html
 
-<script src='https://unpkg.com/goodforms@0.9.5'></script>
+<script src='https://unpkg.com/goodforms@1.0.0'></script>
 ```
 
 Then run, near the bottom of your page:
@@ -33,7 +54,7 @@ DNS JSON format.
 ## Manual Mode
 
 ```html
-<script src='https://unpkg.com/goodforms@0.9.5'></script>
+<script src='https://unpkg.com/goodforms@1.0.0'></script>
 ```
 
 Then, near the bottom of your page:
@@ -95,7 +116,7 @@ your .js code.
 
 Or you can try:
 ```js
-requirejs(['https://unpkg.com/goodforms@0.9.5'], function (Goodforms) {
+requirejs(['https://unpkg.com/goodforms@1.0.0'], function (Goodforms) {
     Goodforms('form_key', {debug: true}) //use as normal
 });
 ```
@@ -120,7 +141,7 @@ You still need, somewhere in your page:
 
 ```html
 
-<script src='https://unpkg.com/goodforms@0.9.5'></script>
+<script src='https://unpkg.com/goodforms@1.0.0'></script>
 ```
 
 At some point after your form is loaded, you can specifically attach to it by using:
@@ -300,7 +321,7 @@ Any other returned types from the functions will be considered an error.
 
 ## Custom styles
 
-FIXME - document CSS overrides you can put in!
+CSS and Less files are in the repo, and you should be able to override those styles with your own choices if you like.
 
 ## Manual Mode
 ```js
