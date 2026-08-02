@@ -408,7 +408,6 @@ export default class Form {
         },
         () => {
             if(this.visuals.good) {
-                // this.tooltip.hide() // TODO - is this right?
                 this.set_state("valid")
             }    
         },
@@ -469,7 +468,7 @@ export default class Form {
             // this.tooltip.remove()
             this.enable_submits()
         },() => {
-            log.debug("No default visuals for error?")
+            this.set_state() //clears spinner
         })
     }
 

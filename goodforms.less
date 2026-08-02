@@ -8,22 +8,41 @@ span.goodforms_invalid_pin {
   color: red;
 }
 
+//legacy-mode icons
+//.goodforms_valid_email {
+//  color: #177305; // I think it is *this* that is making the color?
+//  transition: visibility 0s 2s, opacity 2s linear; //this may be legacy, we don't toggle visibility?
+//  /*opacity: 0;*/
+//  /*visibility: hidden;*/
+//}
+
+//legacy formats if browser lacks SVG support
+
+
 .goodforms_valid_email {
-  color: #177305;
-  transition: visibility 0s 2s, opacity 2s linear;
-  /*opacity: 0;*/
-  /*visibility: hidden;*/
+  background: #fff url("@{CDN_URL}accept.png") no-repeat right 4px center;
+  padding-right: 20px;
 }
 
-// valid/invalid/loading stuff
-input.goodforms_valid_email.goodforms_svg_support {
+.goodforms_invalid_email {
+  background: #fff url("@{CDN_URL}cross.png") no-repeat right 4px center;
+  padding-right: 20px;
+}
+
+.goodforms_loading_email {
+  background: #fff url("@{CDN_URL}ui-progress-bar-indeterminate.gif") no-repeat right 4px center;
+  padding-right: 20px;
+}
+// valid/invalid/loading stuff with prettier SVG support
+.goodforms_valid_email.goodforms_svg_support {
+  // background-color: revert?
   background: data-uri("check.svg") no-repeat right 0.5em center / 1em 1em;
 }
 
-input.goodforms_invalid_email.goodforms_svg_support {
+.goodforms_invalid_email.goodforms_svg_support {
   background: data-uri("x.svg") no-repeat right 0.5em center / 1em 1em;
 }
 
-input.goodforms_loading_email.goodforms_svg_support {
+.goodforms_loading_email.goodforms_svg_support {
   background: data-uri("spinner.svg") no-repeat right 0.5em center / 1em 1em;
 }
