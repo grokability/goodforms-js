@@ -67,15 +67,19 @@ const MicroModal = (() => {
      * Loops through all openTriggers and binds click event
      */
     registerTriggers () {
-      this.triggers.filter(Boolean).forEach(trigger => {
-        trigger.addEventListener('click', this.showModal)
-      })
+      for(let trigger of this.triggers) {
+        if(trigger) {
+          trigger.addEventListener('click', this.showModal)
+        }
+      }
     }
 
     unregisterTriggers () {
-      this.triggers.filter(Boolean).forEach(trigger => {
-        trigger.removeEventListener('click', this.showModal)
-      })
+      for( let trigger of this.triggers) {
+        if(trigger) {
+          trigger.removeEventListener('click', this.showModal)
+        }
+      }
     }
 
     /**
@@ -194,6 +198,18 @@ const MicroModal = (() => {
       return nodes // EDITED - meant to cast to an array but doesn't quite work
     }
 
+    // polyfill for "focusableNodes.filter" which gets called in a few places
+    focusableNodesFilter (nodes, closure) {
+      if (nodes.length === 0) return
+      let results = []
+      for(let node of nodes) {
+        if(closure(node)) {
+          results.push(node)
+        }
+      }
+      return results
+    }
+
     /**
      * Tries to set focus on a node which is not a close trigger
      * if no other nodes exist then focuses on first close trigger
@@ -203,21 +219,11 @@ const MicroModal = (() => {
 
       const focusableNodes = this.getFocusableNodes()
 
-      // no focusable nodes
-      if (focusableNodes.length === 0) return
-
       // remove nodes on whose click, the modal closes
       // could not think of a better name :(
-      // ( Had to rewrite this to work with Bublé )
-      let nodesWhichAreNotCloseTargets = [];
-      for(let node of focusableNodes ) {
-        if(!node.hasAttribute(this.config.closeTrigger)) {
-          nodesWhichAreNotCloseTargets.push(node)
-        }
-      }
-      // const nodesWhichAreNotCloseTargets = focusableNodes.filter(node => {
-      //   return !node.hasAttribute(this.config.closeTrigger)
-      // })
+      const nodesWhichAreNotCloseTargets = this.focusableNodesFilter(focusableNodes, node => {
+        return !node.hasAttribute(this.config.closeTrigger)
+      })
 
       if (nodesWhichAreNotCloseTargets.length > 0) nodesWhichAreNotCloseTargets[0].focus()
       if (nodesWhichAreNotCloseTargets.length === 0) focusableNodes[0].focus()
@@ -226,14 +232,11 @@ const MicroModal = (() => {
     retainFocus (event, focusTrap) {
       let focusableNodes = this.getFocusableNodes()
 
-      // no focusable nodes
-      if (focusableNodes.length === 0) return
-
       /**
        * Filters nodes which are hidden to prevent
        * focus leak outside modal
        */
-      focusableNodes = focusableNodes.filter(node => {
+      focusableNodes = this.focusableNodesFilter(focusableNodes, node => {
         return (node.offsetParent !== null)
       })
 
