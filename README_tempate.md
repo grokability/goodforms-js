@@ -2,22 +2,6 @@
 Note that if you're looking at README.md, that file is *generated* from README_template.md - so do *not*
 directly edit README.md, or your changes will be lost.
 -->
-# Attributions
-
-Like most open-source packages, this one uses a lot of the work of other open-source package maintainers -
-
- - This package uses [Fugue Icons](https://p.yusukekamiyamane.com), written by Yusuke Kamiyamane under a [Creative Commons License](http://creativecommons.org/licenses/by/3.0/).
- - This also uses [Micromodal.js](https://micromodal.vercel.app), which uses the following license:
-
-> MIT License
->
-> Copyright (c) 2017 Indrashish Ghosh
->
-> Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
->
-> The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
->
-> THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 # Introduction
 
@@ -356,3 +340,21 @@ simply don't call the callback at all.
 If you invoke a raw `.verify(address, callback)` call, that callback will fire *after* the onGood, onBad, etc. handlers
 have fired. If you want to interrupt those handlers'
 actions, you should instead attach callbacks to onGood, onBad, etc.
+
+# Attributions
+
+Like most open-source packages, this one uses a lot of the work of other open-source package maintainers -
+
+- This package uses [Fugue Icons](https://p.yusukekamiyamane.com), written by Yusuke Kamiyamane under a [Creative Commons License](http://creativecommons.org/licenses/by/3.0/).
+- This also uses [Micromodal.js](https://micromodal.vercel.app), which uses the following license:
+
+> MIT License
+>
+> Copyright (c) 2017 Indrashish Ghosh
+>
+> Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+>
+> The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+>
+> THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+

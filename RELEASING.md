@@ -1,6 +1,6 @@
 Bump versions using:
 
-`git commit`, then:
+I'm not 100% sure we have to do this first? `git commit`, (the versioning process *also* makes a commit, why make two when you can make one?). But you have to do `--force` to do that together...Anyways,  then:
 
 `npm version patch` (for x.y.Z, e.g. patch-level releases)
 or
